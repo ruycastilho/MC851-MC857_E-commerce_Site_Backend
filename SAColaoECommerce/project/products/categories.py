@@ -8,6 +8,7 @@ class categories():
         for cat in request:
             if cat['id'] not in self.category:
                 self.category[cat['id']] = {
-                    'name'          : cat['name'],
-                    'description'   : cat['description']
+                    "nome" : cat["nome"],
+                    "idcategoriapai" : cat["idcategoriapai],
+                    "campos" : cat["campos"]
                 }

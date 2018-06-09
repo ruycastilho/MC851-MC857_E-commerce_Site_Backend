@@ -9,12 +9,17 @@ class Products():
         for prod in request:
             if prod['id'] not in self.product:
                 self.product[prod['id']] = {
-                    'name'          : prod['name'],
-                    'brand'         : prod['brand'],
-                    'description'   : prod['description'],
-                    'price'         : prod['price'],
-                    'stock'         : prod['stock'],
-                    'categoryId'    : prod['categoryId']
+                    "codigo" : prod['codigo'],
+                    "nome" : prod['nome'],
+                    "idcategoria" : prod['idcategoria'],
+                    "preco" : prod['preco'],
+                    "peso" : prod['peso'],
+                    "dimensao_a" : prod['dimensao_a'],
+                    "dimensao_c" : prod['dimensao_c'],
+                    "dimensao_l" :prod['dimensao_l'],
+                    "idempresa" : 1033,
+                    "imagem_url" : prod['imagem_url'],
+                    "campos" : prod['campos']
                 }
 
     
