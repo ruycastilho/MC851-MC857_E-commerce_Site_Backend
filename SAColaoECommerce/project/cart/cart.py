@@ -19,7 +19,7 @@ class Cart(object):
 
     def update_product(self, product_id, quantity):
         if product_id in self.cart:
-            self.cart[product_id] = {'quantity': quantity}
+            self.cart[product_id]['quantity'] = quantity
         self.save_session()
  
     def save_session(self):
@@ -42,9 +42,7 @@ class Cart(object):
         for product_id in self.cart:
             cart_itens[product_id] = self.cart[product_id]
         for _, dici in cart_itens.items():
-            for key, val in dici.items():
-                if(key == 'price'):
-                    cart_value += float(val)
+            cart_value += float(dici['price']) * float(dici['quantity'])
         return {'preco_carrinho': cart_value}
 
     def get_frete_price(self, CEP, tipoEntrega):
@@ -64,6 +62,13 @@ class Cart(object):
             delivery_days.append(int(json_result['prazo']))
         return {'preco_frete': frete_total_value, 'tempo_entrega': str(max(delivery_days))}
  
+    # Preco total, frete e produtos
+    def get_total_price(self, CEP, tipoEntrega):
+        frete = self.get_frete_price(CEP, tipoEntrega)
+        products = self.get_cart_price()
+        total = float(frete['preco_frete']) + float(products['preco_carrinho'])
+        return {'preco_total': total}
+
     # Retornar os itens do carrinho para que a compra prossiga
     def get_cart_itens(self):
         cart_itens = {}

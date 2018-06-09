@@ -12,6 +12,11 @@ import requests
 import json
 from .cart import Cart
 
+# Variaveis globais
+api_key = 'Bearer 672aeb004b2ce0ebcc8c6627d596b29f8097f0fd8a2c49d4c491d172f7a73c2c'
+headers = {'Authorization': api_key, 'Content-Type': 'application/json'}
+id_empresa = '1029'
+
 # Retorna o requisition em formato json para o python
 def format_json(requisition):
 	body_unicode = requisition.body.decode('utf-8')
@@ -26,33 +31,38 @@ def django_message(message, status_code, content=None):
 		}
 	)
 
-# Esta é uma funcao de auxilio para as API's definidas abaixo
+# Retorna um dicionario com as informacoes do produto
 def get_product_info(product_id):
-	response = requests.get('https://ftt-catalog.herokuapp.com/products/%s' %product_id)
-	json_result=json.loads(response.text)
-	# print(json_result['stock'])
-	return json_result
+	response = requests.get('http://produtos.vitainformatica.com/api/produto?idempresa=%s' %id_empresa, headers=headers).json()
+	item = None
+	for item in response:
+		if(int(product_id) == int(item['idproduto'])):
+			break
+	return item
 
+# Retorna a quantidade do item no estoque
 def check_quantity(product_id, quantity):
-	infos = get_product_info(product_id)
-	if(int(quantity) > infos['stock']):
+	response = requests.get('http://produtos.vitainformatica.com/api/saldo?idproduto=%s' %product_id, headers=headers).json()
+	if(int(quantity) > response[0]['quantidade']):
 		return -1
 	elif(int(quantity) <= 0):
 		return -2
+	return 0
 
+# Deprecated
 def product_existance(product_id):
 	infos = get_product_info(product_id)
 	if(infos['status'] == 404):
 		return False
 	return True
 
+# Retorna preco e dimensoes
 def get_product_specs(product_id):
 	largest = 0
 	infos = get_product_info(product_id)
-	length, width, height = int(infos['length']), int(infos['width']), int(infos['height'])
-	price = infos['price']
-	weight = infos['weight']
-	max_dimention = str(largest)
+	length, width, height = int(infos['dimensao_c']), int(infos['dimensao_l']), int(infos['dimensao_a'])
+	price = infos['preco']
+	weight = infos['peso']
 	return [price, weight, length, width, height]
 
 # API's
@@ -69,8 +79,6 @@ def get_product_specs(product_id):
 def add_product(requisition):
 	cart = Cart(requisition)
 	body = format_json(requisition)
-	if(product_existance(body['product_id']) == False):
-		return django_message("Produto nao existe", 404)
 	if(check_quantity(body['product_id'], body['product_quantity']) == -1):
 		return django_message("Nao existe quantia suficiente no estoque", 404)
 	elif(check_quantity(body['product_id'], body['product_quantity']) == -2):
@@ -91,8 +99,6 @@ def add_product(requisition):
 def update_product(requisition):
 	cart = Cart(requisition)
 	body = format_json(requisition)
-	if(product_existance(body['product_id']) == False):
-		return django_message("Produto nao existe", 404)
 	if(check_quantity(body['product_id'], body['product_quantity']) == -1):
 		return django_message("Nao existe quantia suficiente no estoque", 404)
 	elif(check_quantity(body['product_id'], body['product_quantity']) == -2):
@@ -112,8 +118,6 @@ def update_product(requisition):
 def remove_product(requisition):
 	cart = Cart(requisition)
 	body = format_json(requisition)
-	if(product_existance(body['product_id']) == False):
-		return django_message("Produto nao existe", 404)	
 	cart.remove_product(body['product_id'])
 	return django_message("Produto removido do carrinho", 200)
 
@@ -128,16 +132,18 @@ def show_cart(requisition):
 	return django_message("Mostrando carrinho", 200, cart_itens)
 
 # Mostra valor total do frete para o carrinho em reais.
+# Deve receber um CEP e o tipo de entrega: PAC/SEDEX, formato json no BODY do request
 # nao precisa mandar nada, so um get
-# ex de chamada: http://localhost:8000/cart/get_frete_value/ (GET)
+# ex de chamada: http://localhost:8000/cart/get_frete_value/ (PUT)
 # Devolve sinal 200
 @csrf_exempt
 def get_frete_value(requisition):
-	CEP = '13091904'
-	tipoEntrega = 'PAC'
+	# CEP = '13091904'
+	# tipoEntrega = 'PAC'
 	cart = Cart(requisition)
-	content = cart.get_frete_price(CEP, tipoEntrega)
-	return django_message("Mostrando frete, valor em centavos", 200, content)
+	body = format_json(requisition)	
+	content = cart.get_frete_price(body['CEP'], body['tipoEntrega'])
+	return django_message("Mostrando frete, valor em reais", 200, content)
 
 
 # Mostra valor total dos itens no carrinho em reais.
@@ -149,3 +155,14 @@ def get_cart_value(requisition):
 	cart = Cart(requisition)
 	content = cart.get_cart_price()
 	return django_message("Mostrando preco carrinho", 200, content)
+
+# Mostra valor total dos itens no carrinho + frete em reais.
+# Deve receber um CEP e o tipo de entrega: PAC/SEDEX, formato json no BODY do request
+# ex de chamada: http://localhost:8000/cart/get_cart_value/ (PUT)
+# Devolve sinal 200
+@csrf_exempt
+def get_total_value(requisition):
+	cart = Cart(requisition)
+	body = format_json(requisition)	
+	content = cart.get_total_price(body['CEP'], body['tipoEntrega'])	
+	return django_message("Mostrando preco total", 200, content)
