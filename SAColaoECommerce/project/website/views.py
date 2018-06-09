@@ -52,8 +52,17 @@ def create_user_view(request):
     address = request.POST['address']
 
     user = User.objects.create_user(username, email, password)
-    client = Client.objects.Create(user=user, cpf=cpf, address=address)
+    client = Client.objects.Create(user=user, cpf=cpf, address=address, credit='valid')
     client.save()
+    return JsonResponse({'Status':'Success'})
+
+@csrf_exempt
+def change_email(request):
+
+    new_email = request.POST['email']
+    user = User.objects.filter(cpf=request.session.user.email)
+    user.email = new_email
+    user.save()
     return JsonResponse({'Status':'Success'})
 
 # Tag para permitir requisicoes do Postman

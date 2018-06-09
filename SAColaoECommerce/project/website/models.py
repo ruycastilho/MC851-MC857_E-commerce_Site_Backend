@@ -8,12 +8,31 @@ class Client(models.Model):
     cpf = models.CharField(max_length=11)
     address = models.CharField(max_length=100, default='')
 
+    VALID_CREDIT = 'valid'
+    INVALID_CREDIT = 'invalid'
+
+    CREDIT_CHOICES = (
+        (VALID_CREDIT, 'valid'),
+        (INVALID_CREDIT, 'invalid')
+    )
+
+    credit = models.CharField(choices=CREDIT_CHOICES, max_length=100, default=VALID_CREDIT)
+
     def __str__(self):
         return self.cpf
 
 class Order(models.Model):
     order_id = models.CharField(max_length=50)
 
+    SUCCESS = 'A compra foi um sucesso'
+    FAILED_DUE_TO_CREDIT = 'A compra falhou devido a restrições de crédito'
+
+    PAYMENT_CHOICES = (
+        (SUCCESS, 'sucesso'),
+        (FAILED_DUE_TO_CREDIT, 'falha por credito')
+    )
+    order_status = models.CharField(choices=PAYMENT_CHOICES, default=SUCCESS, max_length=50)
+    
     user = models.ForeignKey(
         Client,
         on_delete=models.CASCADE,
@@ -26,8 +45,8 @@ class Order(models.Model):
     CREDIT = 'Cartão de Crédito'
     SLIP = 'Boleto Bancário'
     PAYMENT_CHOICES = (
-        (CREDIT, 'credit'),
-        (SLIP, 'slip')
+        (CREDIT, 'Cartão de Crédito'),
+        (SLIP, 'Boleto Bancário')
     )
     type_of_payment = models.CharField(choices=PAYMENT_CHOICES, default=CREDIT, max_length=50)
     
@@ -35,9 +54,9 @@ class Order(models.Model):
     PENDING = 'Pagamento Pendente'
     UNPAYED = 'Pagamento Não Realizado'
     STATUS_CHOICES = (
-        (ACCEPTED, 'aceito'),
-        (PENDING, 'pendendo'),
-        (UNPAYED, 'não pago')
+        (ACCEPTED, 'Aceito'),
+        (PENDING, 'Pendendo'),
+        (UNPAYED, 'Não Pago')
     )
     payment_status = models.CharField(choices=STATUS_CHOICES, default=ACCEPTED, max_length=50)
     
@@ -46,9 +65,12 @@ class Order(models.Model):
 
     DELIVERED = 'Entrega Realizada'
     PENDING = 'Entrega Pendente'
+    RETURNED = 'Entrega Devolvida'
     DELIVERY_CHOICES = (
-        (DELIVERED, 'feita'),
-        (PENDING, 'pendendo'),
+        (DELIVERED, 'Entrega Realizada'),
+        (PENDING, 'Entrega Pendente'),
+        (RETURNED, 'Entrega Devolvida'),
+
     )
     delivery_status = models.CharField(choices=DELIVERY_CHOICES, default=DELIVERED, max_length=50)
     
