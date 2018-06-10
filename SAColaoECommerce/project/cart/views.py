@@ -127,6 +127,8 @@ def remove_product(requisition):
 	cart = Cart(requisition)
 	body = format_json(requisition)
 	quantity = cart.remove_product(body['product_id'])
+	# print(body['product_id'])
+	# print(quantity)
 	increase_quantity(body['product_id'], quantity)
 	return django_message("Produto removido do carrinho", 200)
 
@@ -173,3 +175,13 @@ def get_total_value(requisition):
 	body = format_json(requisition)	
 	content = cart.get_total_price(body['CEP'], body['tipoEntrega'])	
 	return django_message("Mostrando preco total", 200, content)
+
+# Limpa o carrinho e recoloca os itens no estoque
+@csrf_exempt
+def clear_cart(requisition):
+	cart = Cart(requisition)
+	cart_itens = cart.get_cart_itens()
+	for product_id in cart_itens:
+		increase_quantity(product_id, cart_itens[product_id]['quantity'])
+	cart.clear_session()
+	return django_message("Mostrando preco total", 200, 'content')
