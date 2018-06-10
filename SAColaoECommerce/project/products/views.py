@@ -103,3 +103,16 @@ def get_products_by_name(request, token):
             filtered.append(item)
 
     return django_message("Retornando produtos filtrados por nome", 200, filtered)
+
+
+@csrf_exempt
+def get_products_by_name_or_category(request, token):
+    response = requests.get('http://produtos.vitainformatica.com/api/produto?idempresa=%s' %id_empresa, headers=headers).json()
+
+    filtered = []
+    item = None
+    for item in response:
+        if(str(token).lower() in str(item['nome']).lower() or str(token).lower() in str(item['categoria']).lower()):
+            filtered.append(item)
+
+    return django_message("Retornando produtos filtrados por nome", 200, filtered)
