@@ -48,6 +48,11 @@ from .products import Products
 }
 
 '''
+# Variaveis globais
+api_key = 'Bearer 672aeb004b2ce0ebcc8c6627d596b29f8097f0fd8a2c49d4c491d172f7a73c2c'
+headers = {'Authorization': api_key, 'Content-Type': 'application/json'}
+# id_empresa = '1033'
+id_empresa = '1029'
 
 
 # Retorna o requisition em formato json para o python
@@ -55,148 +60,46 @@ def format_json(requisition):
     body_unicode = requisition.body.decode('utf-8')
     return json.loads(body_unicode)
 
-# Tag para permitir requisicoes do Postman
+# Retorno para o front end
+def django_message(message, status_code, content=None):
+	return JsonResponse({
+		'message'        : message,
+		'status'         : status_code,
+		'content'        : content,
+		}
+	)
 
 @csrf_exempt
-def get_categories():
-    header = {
-        "Authorization" : "Bearer daeaffa89950427c269d19d54c3f8e2409d5b6e0c5134f20facc797ca62d868f"
-    }
-
-    response = requests.get('http://produtos.vitainformatica.com/api/categoria', headers = header)
-    cat = Categories()
-
-    cat.add_category()
+def get_products(request):
+    response = requests.get('http://produtos.vitainformatica.com/api/produto?idempresa=%s' %id_empresa, headers=headers).json()
+    # print (response)
+    return django_message("Retornando todos produtos", 200, response)
 
 
-@csrf_exempt
-def get_campos():
-    header = {
-        "Authorization" : "Bearer daeaffa89950427c269d19d54c3f8e2409d5b6e0c5134f20facc797ca62d868f"
-    }
-
-    response = requests.get('http://produtos.vitainformatica.com/api/campos', headers = header)
-    cat = Categories()
-
-    cat.add_category()
 
 
 @csrf_exempt
-def get_products():
-    header = {
-        "Authorization" : "Bearer daeaffa89950427c269d19d54c3f8e2409d5b6e0c5134f20facc797ca62d868f"
-    }
+def get_products_by_category(request, token):
+    response = requests.get('http://produtos.vitainformatica.com/api/produto?idempresa=%s' %id_empresa, headers=headers).json()
 
-    response = requests.get('http://produtos.vitainformatica.com/api/produto?idempresa=1033', headers = header)
-    prod = Products()
+    filtered = []
+    item = None
+    for item in response:
+        if(str(token).lower() in str(item['categoria']).lower()):
+            filtered.append(item)
 
-    prod.add_product()
+    return django_message("Retornando produtos filtrados por categoria", 200, filtered)
 
-
-@csrf_exempt
-def add_product(request):
-    body = format_json(request)
-
-    payload = {
-        "codigo" : body['codigo'],
-        "nome" : body['nome'],
-        "idcategoria" : body['idcategoria'],
-        "preco" : body['preco'],
-        "peso" : body['peso'],
-        "dimensao_a" : body['dimensao_a'],
-        "dimensao_c" : body['dimensao_c'],
-        "dimensao_l" :body['dimensao_l'],
-        "idempresa" : 1033,
-        "imagem_url" : body['imagem_url'],
-        "campos" : body['campos']
-    }
-
-    header = {
-        "Authorization" : "Bearer daeaffa89950427c269d19d54c3f8e2409d5b6e0c5134f20facc797ca62d868f"
-    }
-
-    response = requests.post('http://produtos.vitainformatica.com/api/produto', json = payload, headers = header)
-
-    #pega o idproduto recem criado para criar o saldo dele
-    response = format_json(response)
-
-    payload = {
-        "idproduto" : response['idproduto'],
-        "quantidade" : body['quantidade']
-    }
-
-    response = requests.put('http://produtos.vitainformatica.com/api/saldo', json = payload, headers = header)
 
 
 @csrf_exempt
-def update_product(request):
-    body = format_json(request)
+def get_products_by_name(request, token):
+    response = requests.get('http://produtos.vitainformatica.com/api/produto?idempresa=%s' %id_empresa, headers=headers).json()
 
-    payload = {
-        "codigo" : body['codigo'],
-        "nome" : body['nome'],
-        "idcategoria" : body['idcategoria'],
-        "preco" : body['preco'],
-        "peso" : body['peso'],
-        "dimensao_a" : body['dimensao_a'],
-        "dimensao_c" : body['dimensao_c'],
-        "dimensao_l" :body['dimensao_l'],
-        "idempresa" : 1033,
-        "imagem_url" : body['imagem_url'],
-        "campos" : body['campos']
-    }
+    filtered = []
+    item = None
+    for item in response:
+        if(str(token).lower() in str(item['nome']).lower()):
+            filtered.append(item)
 
-    header = {
-        "Authorization" : "Bearer daeaffa89950427c269d19d54c3f8e2409d5b6e0c5134f20facc797ca62d868f"
-    }
-
-    response = requests.put('http://produtos.vitainformatica.com/api/produto?idempresa=1033&idusuario_empresa=28', json = payload, headers = header)
-
-@csrf_exempt
-def saldo_produto(request):
-    header = {
-        "Authorization" : "Bearer daeaffa89950427c269d19d54c3f8e2409d5b6e0c5134f20facc797ca62d868f"
-    }
-
-    response = requests.get('http://produtos.vitainformatica.com/api/saldo?idproduto=%s' %(request['idproduto']) , headers = header)
-
-
-@csrf_exempt
-def consulta_movimento(request):
-    header = {
-        "Authorization" : "Bearer daeaffa89950427c269d19d54c3f8e2409d5b6e0c5134f20facc797ca62d868f"
-    }
-
-    response = requests.get('http://produtos.vitainformatica.com/api/movimento_estoque', headers = header)
-
-
-@csrf_exempt
-def estornar_estoque(request):
-    body = format_json(request)
-
-    header = {
-        "Authorization" : "Bearer daeaffa89950427c269d19d54c3f8e2409d5b6e0c5134f20facc797ca62d868f"
-    }
-
-    payload = {
-        "idproduto" : body['idproduto'],
-        "quantidade" : body['quantidade']
-    }
-
-    response = requests.get('http://produtos.vitainformatica.com/api/movimento_estoque/estornar', json = payload, headers = header)
-
-
-@csrf_exempt
-def vender_estoque(request):
-    body = format_json(request)
-
-    header = {
-        "Authorization" : "Bearer daeaffa89950427c269d19d54c3f8e2409d5b6e0c5134f20facc797ca62d868f"
-    }
-
-    payload = {
-        "idproduto" : body['idproduto'],
-        "quantidade" : body['quantidade']
-    }
-
-    response = requests.get('http://produtos.vitainformatica.com/api/movimento_estoque/vender', json = payload, headers = header)
+    return django_message("Retornando produtos filtrados por nome", 200, filtered)
