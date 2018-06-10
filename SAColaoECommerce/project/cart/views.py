@@ -33,28 +33,28 @@ def django_message(message, status_code, content=None):
 
 # Retorna um dicionario com as informacoes do produto
 def get_product_info(product_id):
-	response = requests.get('http://produtos.vitainformatica.com/api/produto?idempresa=%s' %id_empresa, headers=headers).json()
-	item = None
-	for item in response:
-		if(int(product_id) == int(item['idproduto'])):
-			break
-	return item
+	payload = {'idempresa': id_empresa, 'idproduto': product_id}
+	response = requests.get('http://produtos.vitainformatica.com/api/produto', headers=headers, params=payload).json()
+	return response[0]
 
 # Retorna a quantidade do item no estoque
+#  http://produtos.vitainformatica.com/api/saldo/atual?idproduto=174&idempresa=1029
 def check_quantity(product_id, quantity):
-	response = requests.get('http://produtos.vitainformatica.com/api/saldo?idproduto=%s' %product_id, headers=headers).json()
-	if(int(quantity) > response[0]['quantidade']):
+	response = requests.get('http://produtos.vitainformatica.com/api/saldo/atual?idproduto=%s' %product_id, headers=headers).json()
+	if(int(quantity) > response['saldo_final']):
 		return -1
 	elif(int(quantity) <= 0):
 		return -2
 	return 0
 
-# Deprecated
-def product_existance(product_id):
-	infos = get_product_info(product_id)
-	if(infos['status'] == 404):
-		return False
-	return True
+# Metodos para alterar o estoque. Assumir que a quantia a ser decrementada é válida
+def decrease_quantity(product_id, quantity):
+	payload = {'idempresa': id_empresa, 'idproduto': product_id, 'quantidade': quantity}
+	response = requests.post('http://produtos.vitainformatica.com/api/movimento_estoque/vender', json=payload, headers=headers)
+
+def increase_quantity(product_id, quantity):
+	payload = {'idempresa': id_empresa, 'idproduto': product_id, 'quantidade': quantity}
+	response = requests.post('http://produtos.vitainformatica.com/api/movimento_estoque/estornar', json=payload, headers=headers)
 
 # Retorna preco e dimensoes
 def get_product_specs(product_id):
@@ -63,7 +63,9 @@ def get_product_specs(product_id):
 	length, width, height = int(infos['dimensao_c']), int(infos['dimensao_l']), int(infos['dimensao_a'])
 	price = infos['preco']
 	weight = infos['peso']
-	return [price, weight, length, width, height]
+	nome = infos['nome']
+	descricao = infos['descricao']
+	return [price, weight, length, width, height, nome, descricao]
 
 # API's
 
@@ -83,8 +85,9 @@ def add_product(requisition):
 		return django_message("Nao existe quantia suficiente no estoque", 404)
 	elif(check_quantity(body['product_id'], body['product_quantity']) == -2):
 		return django_message("Quantia deve ser maior do que zero", 404)
-	p, w, l, wid, h = get_product_specs(body['product_id'])
-	cart.add_product(body['product_id'], body['product_quantity'], p, w, l, wid, h)
+	decrease_quantity(body['product_id'], body['product_quantity'])
+	p, w, l, wid, h, n, d = get_product_specs(body['product_id'])
+	cart.add_product(body['product_id'], body['product_quantity'], p, w, l, wid, h, n, d)
 	return django_message("Produto adicionado no carrinho", 200)
 
 # Atualizar quantidade de itens do produto no carrinho
@@ -103,6 +106,11 @@ def update_product(requisition):
 		return django_message("Nao existe quantia suficiente no estoque", 404)
 	elif(check_quantity(body['product_id'], body['product_quantity']) == -2):
 		return django_message("Quantia deve ser maior do que zero", 404)
+	new_quantity = int(cart.get_product_quantity(body['product_id'])) - int(body['product_quantity'])
+	if new_quantity < 0:
+		decrease_quantity(body['product_id'], abs(new_quantity))
+	else:
+		increase_quantity(body['product_id'], abs(new_quantity))
 	cart.update_product(body['product_id'], body['product_quantity'])
 	return django_message("Produto atualizado no carrinho", 200)
 
@@ -118,7 +126,8 @@ def update_product(requisition):
 def remove_product(requisition):
 	cart = Cart(requisition)
 	body = format_json(requisition)
-	cart.remove_product(body['product_id'])
+	quantity = cart.remove_product(body['product_id'])
+	increase_quantity(body['product_id'], quantity)
 	return django_message("Produto removido do carrinho", 200)
 
 # Mostra itens do carrinho. Retorna o ID do produto do Produtos1 e a quantidade no carrinho
@@ -138,8 +147,6 @@ def show_cart(requisition):
 # Devolve sinal 200
 @csrf_exempt
 def get_frete_value(requisition):
-	# CEP = '13091904'
-	# tipoEntrega = 'PAC'
 	cart = Cart(requisition)
 	body = format_json(requisition)	
 	content = cart.get_frete_price(body['CEP'], body['tipoEntrega'])

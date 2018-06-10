@@ -12,9 +12,9 @@ class Cart(object):
             cart = self.session[settings.CART_SESSION_ID] = {}
         self.cart = cart
      
-    def add_product(self, product_id, quantity, price, weight, lenght, width, height):
+    def add_product(self, product_id, quantity, price, weight, lenght, width, height, name, description):
         if product_id not in self.cart:
-            self.cart[product_id] = {'quantity': quantity, 'price': price, 'peso': weight, 'comprimento': lenght, 'largura': width, 'altura': height}
+            self.cart[product_id] = {'quantity': quantity, 'price': price, 'peso': weight, 'comprimento': lenght, 'largura': width, 'altura': height, 'nome': name, 'descricao': description}
         self.save_session()
 
     def update_product(self, product_id, quantity):
@@ -29,11 +29,18 @@ class Cart(object):
     def clear_session(self):
         del self.session[settings.CART_SESSION_ID]
         self.session.modified = True
+
+    def get_product_quantity(self, product_id):
+        if product_id in self.cart:
+            return self.cart[product_id]['quantity']
  
     def remove_product(self, product_id):
+        quantity = 0
         if product_id in self.cart:
+            quantity=self.cart[product_id]['quantity']
             del self.cart[product_id]
             self.save_session()
+            return quantity
  
     # Retorna o valor total dos itens do carrinho
     def get_cart_price(self):
