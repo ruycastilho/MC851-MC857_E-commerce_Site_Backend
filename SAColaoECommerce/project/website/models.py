@@ -37,7 +37,7 @@ class Order(models.Model):
         Client,
         on_delete=models.CASCADE,
     )
-
+ 
     date_of_order = models.DateTimeField()
     date_of_payment = models.DateTimeField()
     price = models.DecimalField(decimal_places=2, max_digits=2)
