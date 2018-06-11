@@ -97,7 +97,7 @@ def get_all_orders(request):
         fields = x['fields']
         fields['date_of_order'] =   fields['date_of_order'].replace("T", " ")
         fields['date_of_payment'] = fields['date_of_payment'].replace("T", " ")
-
+        # fields['products'] = json.loads(fields['products'])
 
         # print(fields)
         response.append(fields)
