@@ -26,7 +26,8 @@ class Client(models.Model):
 class Order(models.Model):
     order_id = models.CharField(max_length=50)
 
-    products = PickledObjectField()
+    # products = PickledObjectField()
+    products = models.CharField(max_length=10000, default='')
 
     SUCCESS = 'A compra foi um sucesso'
     FAILED_DUE_TO_CREDIT = 'A compra falhou devido a restrições de crédito'
