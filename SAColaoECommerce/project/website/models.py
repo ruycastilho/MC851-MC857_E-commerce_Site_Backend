@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from picklefield.fields import PickledObjectField
+from jsonfield import JSONField
 
 # Create your models here.
 
@@ -26,7 +27,7 @@ class Client(models.Model):
 class Order(models.Model):
     order_id = models.CharField(max_length=50)
 
-    products = PickledObjectField()
+    products = JSONField()
 
     SUCCESS = 'A compra foi um sucesso'
     FAILED_DUE_TO_CREDIT = 'A compra falhou devido a restrições de crédito'

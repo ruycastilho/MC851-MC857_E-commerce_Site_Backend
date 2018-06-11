@@ -9,6 +9,7 @@ from time import gmtime, strftime
 
 # Permitir requisoces do Postman
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import get_user
 
 # Create your views here.
 
@@ -28,6 +29,15 @@ def format_json(request):
 #     queryset = models.Ticket.objects.all()
 #     serializer_class = serializer.SACSerializer
 
+# Retorno para o front end
+def django_message(message, status_code, content=None):
+	return JsonResponse({
+		'message'        : message,
+		'status'         : status_code,
+		'content'        : content,
+		}
+    )
+
 
 # API's
 
@@ -42,29 +52,18 @@ def format_json(request):
 # Tag para permitir requisicoes do Postman
 @csrf_exempt
 def add_ticket(request):
-	body = format_json(request)
-	# debug
-	# print(body['sender'])
+    json_data=json.loads(request.body.decode('utf-8'))
 
-	payload={
-		'timestamp': strftime('%Y-%m-%d %H:%M:%S', gmtime()),
-  		'sender'   : request.user.client.cpf,
-  		'message'  : body['message']
-	}
+    payload={
+        'timestamp': strftime('%Y-%m-%dT%H:%M', gmtime()),
+        'sender'   : get_user(request).username,
+        'message'  : json_data['message']
+    }
+    # print(json_data['message'])
+    # print(str(type(strftime('%Y-%m-%d %H:%M:%S', gmtime()))) + " " + str(type(get_user(request).username)) + " "  + str(type(json_data['message'])))
+    response = requests.post(base_url + '%s/%s/' %(site_id, get_user(request).client.cpf), json=payload)
 
-	response = requests.post('http://centralatendimento-mc857.azurewebsites.net/tickets/%s/%s' %(site_id, request.user.client.cpf), json=payload)
-	
-	# debug
-	# print(response.text)
-	# print(response.status_code)
-
-	django_response = HttpResponse(
-		content      = response.content,
-		status       = response.status_code,
-		content_type = response.headers['Content-Type']
-    )
-	
-	return django_response
+    return django_message("Ticket adicionado", response.status_code, str(response.content))
 
 # Adicionar ticket de pedido
 # Recebe json
@@ -77,24 +76,19 @@ def add_ticket(request):
 
 @csrf_exempt
 def add_ticket_order(request):
-    body = format_json(request)
+    json_data=json.loads(request.body.decode('utf-8'))
 
     payload={
-		'timestamp': 'strftime("%Y-%m-%d %H:%M:%S", gmtime())',
-  		'sender'   : request.user.client.cpf,
-  		'message'  : body['message']
-	}
+        'timestamp': strftime('%Y-%m-%dT%H:%M', gmtime()),
+        'sender'   : get_user(request).username,
+        'message'  : json_data['message']
+    }
 
-    order_id = body['order_id']
-    module_request = requests.post(base_url + '%s/%s/compra/%s' %(site_id, request.user.client.cpf, order_id), json=payload)
+    order_id = json_data['order_id']
+    print(json.dumps(payload))
+    response = requests.post(base_url + '%s/%s/compra/%s' %(site_id, get_user(request).client.cpf, order_id), json=payload)
 
-    django_response = HttpResponse(
-		content      = response.content,
-		status       = response.status_code,
-		content_type = response.headers['Content-Type']
-		)
-	
-    return django_response
+    return django_message("Ticket adicionado", response.status_code, str(response.content))
 
 # Adicionar mensagem a ticket
 # Recebe json
@@ -105,21 +99,17 @@ def add_ticket_order(request):
 # }
 # Devolve sinal 200 em sucesso, 400 em falha e 404 caso ticket não seja encontrado
 @csrf_exempt
-def add_message_to_ticket(request):
-    body = format_json(request)
-    ticket_id = body['ticket_id']
+def add_message_to_ticket(request, ticket_id):
+    json_data=json.loads(request.body.decode('utf-8'))
 
     payload={
-		'timestamp': strftime("%Y-%m-%d %H:%M:%S", gmtime()),
-  		'sender'   : request.user.client.cpf,
-  		'message'  : body['message']
-	}
-    
-    module_request = requests.put(base_url + '%s/%s/id/%s' %(site_id, request.user.client.cpf, ticket_id), json=payload)
+        'timestamp': strftime('%Y-%m-%dT%H:%M', gmtime()),
+        'sender'   : get_user(request).username,
+        'message'  : json_data['message']
+    }
+    response = requests.put(base_url + '%s/%s/ticket/%s' %(site_id, get_user(request).client.cpf, ticket_id), json=payload)
 
-    response = module_request.json()
-
-    return JsonResponse(response)
+    return django_message("Mensagem adicionada", response.status_code, str(response.content))
 
 # Receber tickets de um cliente
 # Recebe json
@@ -127,11 +117,12 @@ def add_message_to_ticket(request):
 # Devolve sinal 200 em sucesso, 400 em falha e 404 caso o site id esteja errado
 @csrf_exempt
 def get_all_tickets(request):
-    module_request = requests.get(base_url + '%s/%s/' %(site_id, request.user.client.cpf))
+    response = requests.get(base_url + '%s/%s/' %(site_id, get_user(request).client.cpf))
 
-    response = module_request.json()
+    dump = json.loads(str(response.content.decode('utf-8')))
+    ticket_list = dump['ticketsList']
 
-    return JsonResponse(response)
+    return django_message("Devolvendo tickets", response.status_code, ticket_list)
 
 # Receber ticket especifico de um cliente
 # Recebe json
@@ -139,11 +130,11 @@ def get_all_tickets(request):
 # Devolve sinal 200 em sucesso, 404 caso não encontre nenhum ticket e 400 caso o site id esteja errado
 @csrf_exempt
 def get_ticket_by_number(request, ticket_id):
-    module_request = requests.get(base_url + '%s/%s/ticket/%s' %(site_id, request.user.client.cpf, ticket_id))
+    response = requests.get(base_url + '%s/%s/ticket/%s/' %(site_id, get_user(request).client.cpf, ticket_id))
 
-    response = module_request.json()
+    dump = json.loads(str(response.content.decode('utf-8')))
 
-    return JsonResponse(response)
+    return django_message("Devolvendo ticket por id", response.status_code, dump)
 
 # Receber ticket especifico de um cliente por numero de pedido
 # Recebe json
@@ -151,11 +142,11 @@ def get_ticket_by_number(request, ticket_id):
 # Devolve sinal 200 em sucesso, 404 caso não encontre nenhum ticket e 400 caso o site id esteja errado
 @csrf_exempt
 def get_ticket_by_order(request, order_id):
-    module_request = requests.get(base_url + '%s/%s/compra/%s' %(site_id, request.user.client.cpf, order_id))
+    response = requests.get(base_url + '%s/%s/compra/%s/' %(site_id, get_user(request).client.cpf, order_id))
 
-    response = module_request.json()
+    dump = json.loads(str(response.content.decode('utf-8')))
 
-    return JsonResponse(response)
+    return django_message("Devolvendo ticket por compra", response.status_code, dump)
 
 # Encerrar ticket
 # Recebe json
@@ -167,18 +158,14 @@ def get_ticket_by_order(request, order_id):
 # Devolve sinal 200 em sucesso, 404 caso não encontre nenhum ticket e 400 caso o site id esteja errado
 @csrf_exempt
 def close_ticket(request, ticket_id):
-    body = format_json(request)
+    json_data=json.loads(request.body.decode('utf-8'))
 
     payload={
-		'timestamp': strftime("%Y-%m-%d %H:%M:%S", gmtime()),
-  		'sender'   : request.user.client.cpf,
-  		'message'  : body['message']
-	}
+        'timestamp': strftime('%Y-%m-%dT%H:%M', gmtime()),
+        'sender'   : get_user(request).username,
+        'message'  : json_data['message']
+    }
 
-    ticket_id = body['ticket_id']
+    response = requests.delete(base_url + '%s/%s/ticket/%s?code=1' %(site_id, get_user(request).client.cpf, ticket_id), json=payload)
 
-    module_request = requests.delete(base_url + '%s/%s/ticket/%s?code=1' %(site_id, request.user.client.cpf, ticket_id), json=payload)
-
-    response = module_request.json()
-
-    return JsonResponse(response)
+    return django_message("Devolvendo ticket por compra", response.status_code, str(response.content))

@@ -18,6 +18,7 @@ import requests
 from rest_framework import viewsets
 import json
 from django.core import serializers
+from jsonfield import JSONField
 
 # Retorno para o front end
 def django_message(message, status_code, content=None):
