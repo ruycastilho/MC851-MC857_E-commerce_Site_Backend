@@ -116,3 +116,9 @@ def get_products_by_name_or_category(request, token):
             filtered.append(item)
 
     return django_message("Retornando produtos filtrados por nome", 200, filtered)
+
+@csrf_exempt
+def get_stock_id(request, product_id):
+    response = requests.get('http://produtos.vitainformatica.com/api/saldo/atual?idproduto=%s&idempresa=%s' %(product_id, id_empresa), headers=headers).json()
+
+    return django_message("Retornando saldo de produto", 200, response['saldo_final'])

@@ -1,8 +1,7 @@
 SAColaoECommerce/__pycache__/__init__.cpython-36.pyc
 SAColaoECommerce/__pycache__/urls.cpython-36.pyc
 SAColaoECommerce/__pycache__/wsgi.cpython-36.pyc
-SAColaoECommerce/settings/__pycache__/base.cpython-36.pyc
-SAColaoECommerce/settings/__pycache__/local.cpython-36.pyc
+SAColaoECommerce/settings/__pycache__/*
 project/cart/__pycache__/
 project/customer_support/__pycache__/
 project/payment/__pycache__/
