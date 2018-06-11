@@ -76,7 +76,7 @@ def get_total_value(requisition):
 @csrf_exempt
 def pay_by_credit_card(request):
     cart = Cart(request)
-    cart_itens = cart.get_cart_itens()
+    cart_itens = json.loads(cart.get_cart_itens())
     url = '/payments/creditCard'
     payload = json.loads(request.body)
     to_pay = json.loads(get_total_value(request).content)
@@ -88,7 +88,7 @@ def pay_by_credit_card(request):
         # zerar carrinho sem recolocar no estoque
         # criar order
         order = Order.objects.create(order_id=randrange(0, 999999), 
-                                            products={str(cart_itens)}, 
+                                            products=cart_itens, 
                                             order_status=Order.SUCCESS, 
                                             user=client, 
                                             date_of_order=strftime('%Y-%m-%d %H:%M:%S', gmtime()), 
@@ -104,7 +104,7 @@ def pay_by_credit_card(request):
         # zerar carrinho, recolocar no estoque
         # criar order para mostrar o porque falhou
         order = Order.objects.create(order_id=randrange(0, 999999), 
-                                            products={str(cart_itens)}, 
+                                            products=cart_itens, 
                                             order_status=Order.FAILED_DUE_TO_CREDIT, 
                                             user=client, 
                                             date_of_order=strftime('%Y-%m-%d %H:%M:%S', gmtime()), 
