@@ -11,6 +11,8 @@ from django.views.decorators.csrf import csrf_exempt
 import requests
 import json
 from .products import Products
+import string
+import unicodedata
 
 '''
 {
@@ -82,11 +84,13 @@ def get_products(request):
 def get_products_by_category(request, token):
     response = requests.get('http://produtos.vitainformatica.com/api/produto?idempresa=%s' %id_empresa, headers=headers).json()
 
+    words = str(token).split(" ")
     filtered = []
     item = None
     for item in response:
-        if(str(token).lower() in str(item['categoria']).lower()):
-            filtered.append(item)
+        for word in words:
+            if ( str(word).lower() in str(item['categoria']).lower() or str(word).lower() in remove_accents(item['categoria'])):
+                filtered.append(item)
 
     return django_message("Retornando produtos filtrados por categoria", 200, filtered)
 
@@ -96,11 +100,16 @@ def get_products_by_category(request, token):
 def get_products_by_name(request, token):
     response = requests.get('http://produtos.vitainformatica.com/api/produto?idempresa=%s' %id_empresa, headers=headers).json()
 
+    words = str(token).split(" ")
     filtered = []
     item = None
     for item in response:
-        if(str(token).lower() in str(item['nome']).lower()):
-            filtered.append(item)
+        for word in words:
+            if ( str(word).lower() in str(item['nome']).lower() or str(word).lower() in remove_accents(item['nome']) ):
+                filtered.append(item)
+
+    result = []
+    [result.append(item) for item in filtered if item not in result]           
 
     return django_message("Retornando produtos filtrados por nome", 200, filtered)
 
@@ -109,11 +118,16 @@ def get_products_by_name(request, token):
 def get_products_by_name_or_category(request, token):
     response = requests.get('http://produtos.vitainformatica.com/api/produto?idempresa=%s' %id_empresa, headers=headers).json()
 
+    words = str(token).split(" ")
     filtered = []
     item = None
     for item in response:
-        if(str(token).lower() in str(item['nome']).lower() or str(token).lower() in str(item['categoria']).lower()):
-            filtered.append(item)
+        for word in words:
+            if ( (str(word).lower() in str(item['nome']).lower() or str(word).lower() in str(item['categoria']).lower()) ) or ((str(word).lower() in remove_accents(item['nome']) or str(word).lower() in remove_accents(item['categoria']))):
+                filtered.append(item)
+
+    result = []
+    [result.append(item) for item in filtered if item not in result]           
 
     return django_message("Retornando produtos filtrados por nome", 200, filtered)
 
@@ -122,3 +136,6 @@ def get_stock_id(request, product_id):
     response = requests.get('http://produtos.vitainformatica.com/api/saldo/atual?idproduto=%s&idempresa=%s' %(product_id, id_empresa), headers=headers).json()
 
     return django_message("Retornando saldo de produto", 200, response['saldo_final'])
+
+def remove_accents(data):
+    return ''.join(x for x in unicodedata.normalize('NFKD', data) if x in string.ascii_letters).lower()

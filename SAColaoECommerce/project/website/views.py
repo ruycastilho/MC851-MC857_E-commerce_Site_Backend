@@ -72,7 +72,8 @@ def login_view(request):
 
     if user is not None:
         login(request, user)
-        return django_message("Logado", 200, '')
+        return django_message("Logado", 200, username)
+        # return HttpResponse("Test")
     else:
         return django_message("Erro", 404, '')
 
