@@ -10,27 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
-import environ
-
-# Heroku
-import dj_database_url
 import os
+import dj_database_url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-ROOT_DIR = environ.Path(__file__) - 2
-APPS_DIR = ROOT_DIR.path('project')
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-env = environ.Env()
-
-# This section added from an update to standards in CookieCutter Django to ensure no errors are encountered at runserver/migrations
-READ_DOT_ENV_FILE = env.bool('DJANGO_READ_DOT_ENV_FILE', default=False)
-
-if READ_DOT_ENV_FILE:
-    env_file = str(ROOT_DIR.path('.env'))
-    print('Loading : {}'.format(env_file))
-    env.read_env(env_file)
-    print('The .env file has been loaded. See base.py for more information')
-
+SECRET_KEY = '4#u9-nwtlgcgntuvx1&&yr9nz(d*u6$thqzjm!wt$3h-kw#yed'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
@@ -38,39 +24,28 @@ if READ_DOT_ENV_FILE:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-# Heroku
 #ALLOWED_HOSTS = ['*']
 ALLOWED_HOSTS = ['127.0.0.1', '.herokuapp.com']
 
-CORS_ORIGIN_ALLOW_ALL = True
 
 # Application definition
 
-DJANGO_APPS = (
+INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles'
-)
-
-THIRD_PARTY_APPS = (
-    'rest_framework',
-)
-
-LOCAL_APPS = (
+    'django.contrib.staticfiles',
+    'corsheaders',
     'project.website',
     'project.cart',
     'project.customer_support',
     'project.payment',
-    'project.products'
+    'project.products',
+    'rest_framework',
+
 )
-
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
-
-REST_FRAMEWORK = {
-}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -82,6 +57,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = 'SAColaoECommerce.urls'
 
@@ -107,12 +84,11 @@ WSGI_APPLICATION = 'SAColaoECommerce.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': str(ROOT_DIR.path('db.sqlite3')),
-# Heroku
+#        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         'USER': 'name',
         'PASSWORD': '',
         'HOST': 'localhost',
@@ -145,11 +121,12 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'America/Sao_Paulo'
+TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
 USE_L10N = False
+
 USE_TZ = False
 
 
@@ -157,24 +134,6 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
-
-STATIC_ROOT = str(ROOT_DIR('staticfiles'))
-
-#STATICFILES_DIRS = (
-#    str(APPS_DIR.path('static')),
-#)
-STATICFILES_DIRS = (
-    os.path.join(str(ROOT_DIR), 'static')
-)
-
-STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-)
-
-MEDIA_URL = '/media/'
-
-MEDIA_ROOT = str(APPS_DIR('media'))
 
 CART_SESSION_ID = 'cart_session_id'
 
