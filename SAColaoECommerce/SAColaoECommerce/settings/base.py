@@ -159,8 +159,11 @@ STATIC_URL = '/static/'
 
 STATIC_ROOT = str(ROOT_DIR('staticfiles'))
 
+#STATICFILES_DIRS = (
+#    str(APPS_DIR.path('static')),
+#)
 STATICFILES_DIRS = (
-    str(APPS_DIR.path('static')),
+    os.path.join(ROOT_DIR, 'static')
 )
 
 STATICFILES_FINDERS = (
