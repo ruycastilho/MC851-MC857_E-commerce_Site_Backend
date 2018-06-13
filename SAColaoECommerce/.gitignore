@@ -7,3 +7,8 @@ project/customer_support/__pycache__/
 project/payment/__pycache__/
 project/products/__pycache__/
 project/website/__pycache__/
+
+*.pyc
+db.sqlite3
+__pycache__
+local_settings.py
