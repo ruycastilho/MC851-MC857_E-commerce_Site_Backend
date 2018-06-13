@@ -13,6 +13,7 @@ from . import views
 urlpatterns = [
     # path('', include(router.urls)),
     path('get_all_orders/', views.get_all_orders, name='get_all_orders'),
+    path('get_info/', views.get_info, name='get_info'),
     path('createuser/', views.create_user_view, name='create_user_view'),
     path('change_email/', views.change_email, name='change_email'),
     path('login/', views.login_view, name='login_view'),

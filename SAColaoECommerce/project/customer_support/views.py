@@ -56,19 +56,22 @@ def add_ticket(request):
 
     payload={
         'timestamp': strftime('%Y-%m-%dT%H:%M', gmtime()),
+        # 'sender'   : get_user(request).username,
         'sender'   : get_user(request).username,
+        'sender'   : '263.153.130-27',
         'message'  : json_data['message']
     }
     # print(json_data['message'])
     user = get_user(request)
-    if not(request.user.is_authenticated):
-        print("AQUIIIIIIII")
+    # if not(request.user.is_authenticated):
+    #     print("AQUIIIIIIII")
     
-    print("username " + user.password)
+    # print("username " + user.password)
     # print(str(type(strftime('%Y-%m-%d %H:%M:%S', gmtime()))) + " " + str(type(get_user(request).username)) + " "  + str(type(json_data['message'])))
-    response = requests.post(base_url + '%s/%s/' %(site_id, get_user(request).client.cpf), json=payload)
+    # response = requests.post(base_url + '%s/%s/' %(site_id, get_user(request).client.cpf), json=payload)
+    response = requests.post(base_url + '%s/%s/' %(site_id,'263.153.130-27'), json=payload)
 
-    print(response.status_code + str(response.content))
+    # print(response.status_code + str(response.content))
     return django_message("Ticket adicionado", response.status_code, str(response.content))
 
 # Adicionar ticket de pedido
@@ -86,13 +89,16 @@ def add_ticket_order(request):
 
     payload={
         'timestamp': strftime('%Y-%m-%dT%H:%M', gmtime()),
-        'sender'   : get_user(request).username,
+        # 'sender'   : get_user(request).username,
+        'sender'   : '263.153.130-27',
         'message'  : json_data['message']
     }
 
-    order_id = json_data['order_id']
+    order_id = json_data['order']
     # print(json.dumps(payload))
-    response = requests.post(base_url + '%s/%s/compra/%s' %(site_id, get_user(request).client.cpf, order_id), json=payload)
+    # response = requests.post(base_url + '%s/%s/compra/%s' %(site_id, get_user(request).client.cpf, order_id), json=payload)
+    response = requests.post(base_url + '%s/%s/compra/%s' %(site_id,'263.153.130-27', order_id), json=payload)
+
 
     return django_message("Ticket adicionado", response.status_code, str(response.content))
 
@@ -110,10 +116,12 @@ def add_message_to_ticket(request, ticket_id):
 
     payload={
         'timestamp': strftime('%Y-%m-%dT%H:%M', gmtime()),
-        'sender'   : get_user(request).username,
+        # 'sender'   : get_user(request).username,
+        'sender':  'user',
         'message'  : json_data['message']
     }
-    response = requests.put(base_url + '%s/%s/ticket/%s' %(site_id, get_user(request).client.cpf, ticket_id), json=payload)
+    # response = requests.put(base_url + '%s/%s/ticket/%s' %(site_id, get_user(request).client.cpf, ticket_id), json=payload)
+    response = requests.put(base_url + '%s/%s/ticket/%s' %(site_id, '263.153.130-27', ticket_id), json=payload)
 
     return django_message("Mensagem adicionada", response.status_code, str(response.content))
 
@@ -123,7 +131,8 @@ def add_message_to_ticket(request, ticket_id):
 # Devolve sinal 200 em sucesso, 400 em falha e 404 caso o site id esteja errado
 @csrf_exempt
 def get_all_tickets(request):
-    response = requests.get(base_url + '%s/%s/' %(site_id, get_user(request).client.cpf))
+    # response = requests.get(base_url + '%s/%s/' %(site_id, get_user(request).client.cpf))
+    response = requests.get(base_url + '%s/263.153.130-27/' %(site_id))
 
     dump = json.loads(str(response.content.decode('utf-8')))
     ticket_list = dump['ticketsList']
@@ -141,6 +150,22 @@ def get_ticket_by_number(request, ticket_id):
     dump = json.loads(str(response.content.decode('utf-8')))
 
     return django_message("Devolvendo ticket por id", response.status_code, dump)
+
+
+# Receber mensagens ticket especifico de um cliente
+# Recebe json
+# ex de chamada: http://localhost:8000/customer_support/get_ticket_by_number/1 (GET);
+# Devolve sinal 200 em sucesso, 404 caso não encontre nenhum ticket e 400 caso o site id esteja errado
+@csrf_exempt
+def get_message_by_number(request, ticket_id):
+    # response = requests.get(base_url + '%s/%s/ticket/%s/' %(site_id, get_user(request).client.cpf, ticket_id))
+    response = requests.get(base_url + '%s/263.153.130-27/ticket/%s/' %(site_id, ticket_id))
+    dump = json.loads(str(response.content.decode('utf-8')))
+
+    # print(dump['ticketsList'][0]['messagesList'])
+
+    return django_message("Devolvendo ticket por id", response.status_code, dump['ticketsList'][0]['messagesList'])
+
 
 # Receber ticket especifico de um cliente por numero de pedido
 # Recebe json
@@ -168,10 +193,12 @@ def close_ticket(request, ticket_id):
 
     payload={
         'timestamp': strftime('%Y-%m-%dT%H:%M', gmtime()),
-        'sender'   : get_user(request).username,
+        # 'sender'   : get_user(request).username,
+        'sender'   : '263.153.130-27',
         'message'  : json_data['message']
     }
 
-    response = requests.delete(base_url + '%s/%s/ticket/%s?code=1' %(site_id, get_user(request).client.cpf, ticket_id), json=payload)
+    # response = requests.delete(base_url + '%s/%s/ticket/%s?code=1' %(site_id, get_user(request).client.cpf, ticket_id), json=payload)
+    response = requests.delete(base_url + '%s/%s/ticket/%s?code=1' %(site_id, '263.153.130-27', ticket_id), json=payload)
 
     return django_message("Devolvendo ticket por compra", response.status_code, str(response.content))

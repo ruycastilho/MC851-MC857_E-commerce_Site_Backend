@@ -21,9 +21,9 @@ SECRET_KEY = '4#u9-nwtlgcgntuvx1&&yr9nz(d*u6$thqzjm!wt$3h-kw#yed'
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG =True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 

@@ -69,12 +69,38 @@ def change_email(request):
     json_data=json.loads(request.body.decode('utf-8'))
     new_email = json_data['email']
 
-    user = get_user(request)
-    client = user.client
+    # user = get_user(request)
+    # client = user.client
 
-    client.email = new_email
-    client.save()
+    # client.email = new_email
+    # client.save()
+    
     return django_message("Email alterado", 200, '')
+
+
+@csrf_exempt
+def get_info(request):
+
+    # user = get_user(request)
+    # client = user.client
+    # email = client.email
+    # cpf = client.cpf
+    # address = client.address
+
+    # content = {
+    #     'email'         : email,
+    #     'cpf'           : cpf,
+    #     'address'       : address,
+    # }
+
+    content = {
+        'email'         : "teste email",
+        'cpf'           : "teste cpf",
+        'address'       : "teste endereco",
+    }
+
+    return django_message("Email alterado", 200, content)
+
 
 
 # Tag para permitir requisicoes do Postman
@@ -87,13 +113,14 @@ def login_view(request):
     print(username + " " + password)
 
     user = authenticate(request, username=username, password=password)
+    print("LOGIN")
 
     # print(user.username)
     if user is not None:
         print("LOGIN")
         login(request, user)
 
-        return django_message("Logado", 200, var)
+        return django_message("Logado", 200, '')
     else:
         return django_message("Erro", 404, str(request.user.is_authenticated))
 
@@ -101,10 +128,16 @@ def login_view(request):
 # Tag para permitir requisicoes do Postman
 @csrf_exempt
 def logout_view(request):
+    if request.user.is_authenticated:
+        print(str(request.user.is_authenticated))
+    
+    print(str(request.user.is_authenticated))
+
+    
     logout(request)
     print("LOGOUT")
 
-    return django_message("Deslogado", 200, var)
+    return django_message("Deslogado", 200, '')
 
 @csrf_exempt
 def get_all_orders(request):
