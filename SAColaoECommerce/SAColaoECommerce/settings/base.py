@@ -164,7 +164,7 @@ STATIC_ROOT = str(ROOT_DIR('staticfiles'))
 #    str(APPS_DIR.path('static')),
 #)
 STATICFILES_DIRS = (
-    os.path.join(ROOT_DIR, 'static')
+    os.path.join(str(ROOT_DIR), 'static')
 )
 
 STATICFILES_FINDERS = (
