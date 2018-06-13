@@ -8,6 +8,7 @@ from django.http import JsonResponse
 # Django Login system
 from django.contrib.auth import authenticate, login, logout, get_user
 from django.contrib.auth.models import User
+from django.db.models import Q
 
 # Permitir requisoces do Postman
 from django.views.decorators.csrf import csrf_exempt
@@ -33,6 +34,12 @@ def django_message(message, status_code, content=None):
 @csrf_exempt
 def create_user_view(request):
 
+    user = get_user(request)
+    user2 = request.user
+    # print(user)
+    # print("")
+    # print(user2)
+
     json_data=json.loads(request.body.decode('utf-8'))
 
     username = json_data['username']
@@ -42,10 +49,22 @@ def create_user_view(request):
     address = json_data['address']
 
     print(json_data)
-    user = User.objects.create_user(username, email, password)
-    client = models.Client.objects.create(user=user, cpf=cpf, address=address, credit='valid')
-    client.save()
-    return JsonResponse({'Status':'Success'})
+
+    find1 = models.Client.objects.filter(cpf=cpf)
+    find2 = models.Client.objects.filter(user__username=username)
+
+    if not find1 and not find2:
+     
+        user = User.objects.create_user(username, email, password)
+
+        client = models.Client.objects.create(user=user, cpf=cpf, address=address, credit='valid')
+        client.save()
+
+        return django_message("Usuário foi cadastrado", 200, "")
+
+    else:
+   
+        return django_message("Usuário já existe com este CPF", 400, "")
 
 @csrf_exempt
 def change_email(request):
@@ -68,9 +87,13 @@ def login_view(request):
     json_data=json.loads(request.body.decode('utf-8'))
     username = json_data['username']
     password = json_data['password']
+    print(username + " " + password)
     user = authenticate(request, username=username, password=password)
 
+    print(user.username)
     if user is not None:
+        print("LOGIN")
+
         login(request, user)
         return django_message("Logado", 200, username)
         # return HttpResponse("Test")
@@ -82,6 +105,8 @@ def login_view(request):
 @csrf_exempt
 def logout_view(request):
     logout(request)
+    print("LOGOUT")
+
     return django_message("Deslogado", 200, '')
 
 @csrf_exempt
@@ -90,7 +115,7 @@ def get_all_orders(request):
     user = get_user(request)
     client = user.client
 
-    orders = models.Order.objects.filter(user__cpf=client.cpf)
+    orders = models.Order.objects.filter(user__cpf=client.cpf)  #orderby
     data = json.loads(serializers.serialize("json", orders))
     
     response = []

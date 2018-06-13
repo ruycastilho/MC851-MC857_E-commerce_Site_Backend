@@ -60,9 +60,15 @@ def add_ticket(request):
         'message'  : json_data['message']
     }
     # print(json_data['message'])
+    user = get_user(request)
+    if not(request.user.is_authenticated):
+        print("AQUIIIIIIII")
+    
+    print("username " + user.password)
     # print(str(type(strftime('%Y-%m-%d %H:%M:%S', gmtime()))) + " " + str(type(get_user(request).username)) + " "  + str(type(json_data['message'])))
     response = requests.post(base_url + '%s/%s/' %(site_id, get_user(request).client.cpf), json=payload)
 
+    print(response.status_code + str(response.content))
     return django_message("Ticket adicionado", response.status_code, str(response.content))
 
 # Adicionar ticket de pedido
@@ -85,7 +91,7 @@ def add_ticket_order(request):
     }
 
     order_id = json_data['order_id']
-    print(json.dumps(payload))
+    # print(json.dumps(payload))
     response = requests.post(base_url + '%s/%s/compra/%s' %(site_id, get_user(request).client.cpf, order_id), json=payload)
 
     return django_message("Ticket adicionado", response.status_code, str(response.content))

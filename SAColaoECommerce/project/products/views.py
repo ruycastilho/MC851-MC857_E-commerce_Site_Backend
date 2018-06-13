@@ -51,10 +51,10 @@ import unicodedata
 
 '''
 # Variaveis globais
-api_key = 'Bearer 672aeb004b2ce0ebcc8c6627d596b29f8097f0fd8a2c49d4c491d172f7a73c2c'
+api_key = 'Bearer daeaffa89950427c269d19d54c3f8e2409d5b6e0c5134f20facc797ca62d868f'
 headers = {'Authorization': api_key, 'Content-Type': 'application/json'}
-# id_empresa = '1033'
-id_empresa = '1029'
+id_empresa = '1033'
+# id_empresa = '1029'
 
 
 # Retorna o requisition em formato json para o python
@@ -74,7 +74,7 @@ def django_message(message, status_code, content=None):
 @csrf_exempt
 def get_products(request):
     response = requests.get('http://produtos.vitainformatica.com/api/produto?idempresa=%s' %id_empresa, headers=headers).json()
-    # print (response)
+
     return django_message("Retornando todos produtos", 200, response)
 
 
@@ -111,31 +111,36 @@ def get_products_by_name(request, token):
     result = []
     [result.append(item) for item in filtered if item not in result]           
 
-    return django_message("Retornando produtos filtrados por nome", 200, filtered)
+    return django_message("Retornando produtos filtrados por nome", 200, result)
 
 
 @csrf_exempt
-def get_products_by_name_or_category(request, token):
+def get_products_by_name_or_category(request, cat, name):
     response = requests.get('http://produtos.vitainformatica.com/api/produto?idempresa=%s' %id_empresa, headers=headers).json()
 
-    words = str(token).split(" ")
+    words = str(name).split(" ")
     filtered = []
     item = None
     for item in response:
         for word in words:
-            if ( (str(word).lower() in str(item['nome']).lower() or str(word).lower() in str(item['categoria']).lower()) ) or ((str(word).lower() in remove_accents(item['nome']) or str(word).lower() in remove_accents(item['categoria']))):
+            if ( (str(word).lower() in str(item['nome']).lower()) and ( str(cat).lower() == str(item['categoria'].lower() ) ) ):
                 filtered.append(item)
 
     result = []
     [result.append(item) for item in filtered if item not in result]           
 
-    return django_message("Retornando produtos filtrados por nome", 200, filtered)
+    return django_message("Retornando produtos filtrados por nome", 200, result)
 
 @csrf_exempt
-def get_stock_id(request, product_id):
-    response = requests.get('http://produtos.vitainformatica.com/api/saldo/atual?idproduto=%s&idempresa=%s' %(product_id, id_empresa), headers=headers).json()
-
+def get_stock(request, product_id):
+    param={'idproduto' : product_id}
+    response = requests.get('http://produtos.vitainformatica.com/api/saldo/atual', params=param, headers=headers).json()
     return django_message("Retornando saldo de produto", 200, response['saldo_final'])
 
 def remove_accents(data):
     return ''.join(x for x in unicodedata.normalize('NFKD', data) if x in string.ascii_letters).lower()
+
+# def get_stock_all(product_id):
+#     response = requests.get('http://produtos.vitainformatica.com/api/saldo/atual?idproduto=%s&idempresa=%s' %(product_id, id_empresa), headers=headers).json()
+
+#     return response['saldo_final']
