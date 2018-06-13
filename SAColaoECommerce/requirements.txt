@@ -14,3 +14,7 @@ Serializer==0.2.1
 simplejson==3.15.0
 six==1.11.0
 urllib3==1.22
+dj-database-url==0.5.0
+gunicorn==19.8.1
+whitenoise==3.3.1
+psycopg2==2.7.2
