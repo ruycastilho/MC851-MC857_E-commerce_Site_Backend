@@ -81,6 +81,7 @@ def pay_by_credit_card(request):
     payload = json.loads(request.body)
     to_pay = json.loads(get_total_value(request).content)
     payload['value'] = to_pay['content']['preco_total']
+
     user = get_user(request)
     client = user.client
     if(client.credit == Client.VALID_CREDIT):

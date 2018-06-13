@@ -8,15 +8,12 @@ from django.http import JsonResponse
 # Django Login system
 from django.contrib.auth import authenticate, login, logout, get_user
 from django.contrib.auth.models import User
-from django.db.models import Q
 
 # Permitir requisoces do Postman
 from django.views.decorators.csrf import csrf_exempt
 
 from . import models
-# from .serializer import ClientSerializer, ProductSerializer, OrderSerializer
 import requests
-from rest_framework import viewsets
 import json
 from django.core import serializers
 from jsonfield import JSONField
@@ -88,17 +85,17 @@ def login_view(request):
     username = json_data['username']
     password = json_data['password']
     print(username + " " + password)
+
     user = authenticate(request, username=username, password=password)
 
-    print(user.username)
+    # print(user.username)
     if user is not None:
         print("LOGIN")
-
         login(request, user)
-        return django_message("Logado", 200, username)
-        # return HttpResponse("Test")
+
+        return django_message("Logado", 200, var)
     else:
-        return django_message("Erro", 404, '')
+        return django_message("Erro", 404, str(request.user.is_authenticated))
 
 
 # Tag para permitir requisicoes do Postman
@@ -107,7 +104,7 @@ def logout_view(request):
     logout(request)
     print("LOGOUT")
 
-    return django_message("Deslogado", 200, '')
+    return django_message("Deslogado", 200, var)
 
 @csrf_exempt
 def get_all_orders(request):
