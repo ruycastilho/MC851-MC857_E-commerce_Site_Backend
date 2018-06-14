@@ -13,9 +13,9 @@ import json
 from .cart import Cart
 
 # Variaveis globais
-api_key = 'Bearer 672aeb004b2ce0ebcc8c6627d596b29f8097f0fd8a2c49d4c491d172f7a73c2c'
+api_key = 'Bearer daeaffa89950427c269d19d54c3f8e2409d5b6e0c5134f20facc797ca62d868f'
 headers = {'Authorization': api_key, 'Content-Type': 'application/json'}
-id_empresa = '1029'
+id_empresa = '1033'
 
 # Retorna o requisition em formato json para o python
 def format_json(requisition):
@@ -41,6 +41,8 @@ def get_product_info(product_id):
 #  http://produtos.vitainformatica.com/api/saldo/atual?idproduto=174&idempresa=1029
 def check_quantity(product_id, quantity):
 	response = requests.get('http://produtos.vitainformatica.com/api/saldo/atual?idproduto=%s' %product_id, headers=headers).json()
+
+	print(response)
 	if(int(quantity) > response['saldo_final']):
 		return -1
 	elif(int(quantity) <= 0):
@@ -65,8 +67,9 @@ def get_product_specs(product_id):
 	weight = infos['peso']
 	nome = infos['nome']
 	descricao = infos['descricao']
+	category = infos['categoria']
 	url = infos['imagem_url']
-	return [price, weight, length, width, height, nome, descricao, url]
+	return [price, weight, length, width, height, nome, descricao, url, category]
 
 # API's
 
@@ -81,14 +84,15 @@ def get_product_specs(product_id):
 @csrf_exempt
 def add_product(requisition):
 	cart = Cart(requisition)
-	body = format_json(requisition)
+	body=json.loads(requisition.body.decode('utf-8'))
+	print(body)
 	if(check_quantity(body['product_id'], body['product_quantity']) == -1):
 		return django_message("Nao existe quantia suficiente no estoque", 404)
 	elif(check_quantity(body['product_id'], body['product_quantity']) == -2):
 		return django_message("Quantia deve ser maior do que zero", 404)
 	decrease_quantity(body['product_id'], body['product_quantity'])
-	p, w, l, wid, h, n, d, url = get_product_specs(body['product_id'])
-	cart.add_product(body['product_id'], body['product_quantity'], p, w, l, wid, h, n, d, url)
+	p, w, l, wid, h, n, d, url, category = get_product_specs(body['product_id'])
+	cart.add_product(body['product_id'], body['product_quantity'], p, w, l, wid, h, n, d, url, category)
 	return django_message("Produto adicionado no carrinho", 200)
 
 # Atualizar quantidade de itens do produto no carrinho
@@ -153,7 +157,7 @@ def get_frete_value(requisition):
 	cart = Cart(requisition)
 	body = format_json(requisition)	
 	content = cart.get_frete_price(body['CEP'], body['tipoEntrega'])
-	return django_message("Mostrando frete, valor em reais", 200, content)
+	return django_message("Mostrando frete, valor em reais", 200, content['preco_frete'])
 
 
 # Mostra valor total dos itens no carrinho em reais.

@@ -54,7 +54,7 @@ def create_user_view(request):
      
         user = User.objects.create_user(username, email, password)
 
-        client = models.Client.objects.create(user=user, cpf=cpf, address=address, credit='valid')
+        client = models.Client.objects.create(user=user, email=email, cpf=cpf, address=address, credit='valid')
         client.save()
 
         return django_message("Usuário foi cadastrado", 200, "")
@@ -69,11 +69,11 @@ def change_email(request):
     json_data=json.loads(request.body.decode('utf-8'))
     new_email = json_data['email']
 
-    # user = get_user(request)
-    # client = user.client
+    user = get_user(request)
+    client = user.client
 
-    # client.email = new_email
-    # client.save()
+    client.email = new_email
+    client.save()
     
     return django_message("Email alterado", 200, '')
 
@@ -81,23 +81,25 @@ def change_email(request):
 @csrf_exempt
 def get_info(request):
 
-    # user = get_user(request)
-    # client = user.client
-    # email = client.email
-    # cpf = client.cpf
-    # address = client.address
+    user = get_user(request)
+    client = user.client
+    email = client.email
+    cpf = client.cpf
+    address = client.address
 
-    # content = {
-    #     'email'         : email,
-    #     'cpf'           : cpf,
-    #     'address'       : address,
-    # }
+    # print (email + "!")
 
     content = {
-        'email'         : "teste email",
-        'cpf'           : "teste cpf",
-        'address'       : "teste endereco",
+        'email'         : email,
+        'cpf'           : cpf,
+        'address'       : address,
     }
+
+    # content = {
+    #     'email'         : "teste email",
+    #     'cpf'           : "teste cpf",
+    #     'address'       : "teste endereco",
+    # }
 
     return django_message("Email alterado", 200, content)
 
@@ -146,68 +148,68 @@ def logout_view(request):
 @csrf_exempt
 def get_all_orders(request):
 
-    # user = get_user(request)
-    # client = user.client
+    user = get_user(request)
+    client = user.client
 
-    # orders = models.Order.objects.filter(user__cpf=client.cpf)  #orderby
-    # data = json.loads(serializers.serialize("json", orders))
+    orders = models.Order.objects.filter(user__cpf=client.cpf)  #orderby
+    data = json.loads(serializers.serialize("json", orders))
     
-    # response = []
-    # for x in data:
-    #     fields = x['fields']
-    #     fields['date_of_order'] =   fields['date_of_order'].replace("T", " ")
-    #     fields['date_of_payment'] = fields['date_of_payment'].replace("T", " ")
-    #     # fields['products'] = json.loads(fields['products'])
-
-    #     # print(fields)
-    #     response.append(fields)
-
-    products =[
-        {
-            'price'  : "R$ 25,00",
-            'quantity' : "1",
-            'url'    : "https://images-na.ssl-images-amazon.com/images/I/51ELLu0XQxL._SX317_BO1,204,203,200_.jpg",
-            'nome'   : "Produto 1",
-        },
-        {
-            'price'  : "R$ 25,00",
-            'quantity' : "1",
-            'url'    : "https://images-na.ssl-images-amazon.com/images/I/51ELLu0XQxL._SX317_BO1,204,203,200_.jpg",
-            'nome'   : "Produto 2",
-        },
-        {
-            'price'  : "R$ 25,00",
-            'quantity' : "1",
-            'url'    : "https://images-na.ssl-images-amazon.com/images/I/51ELLu0XQxL._SX317_BO1,204,203,200_.jpg",
-            'nome'   : "Produto 3",
-        },
-        {
-            'price'  : "R$ 25,00",
-            'quantity' : "1",
-            'url'    : "https://images-na.ssl-images-amazon.com/images/I/51ELLu0XQxL._SX317_BO1,204,203,200_.jpg",
-            'nome'   : "Produto 4",
-        }
-    ]
-
-    content = {
-        'order_id'          : "teste id",
-        'type_of_payment'   : "teste tipo de pagamento",
-        'date_of_payment'   : "teste data de pagamento",
-        'date_of_order'     : "teste data de entrega",
-        'payment_status'    : "teste situação de pagamento",
-        'delivery_status'   : "teste situação entrega",
-        'delivery_code'     : "teste codigo",
-        'address'           : "teste endereco",
-        'price'             : "100,00",
-        'products'          : products,
-
-    }
     response = []
-    response.append(content)
-    response.append(content)
-    response.append(content)
+    for x in data:
+        fields = x['fields']
+        fields['date_of_order'] =   fields['date_of_order'].replace("T", " ")
+        fields['date_of_payment'] = fields['date_of_payment'].replace("T", " ")
+        # fields['products'] = json.loads(fields['products'])
 
-    # print(response)
+        # print(fields)
+        response.append(fields)
+
+    # products =[
+    #     {
+    #         'price'  : "R$ 25,00",
+    #         'quantity' : "1",
+    #         'url'    : "https://images-na.ssl-images-amazon.com/images/I/51ELLu0XQxL._SX317_BO1,204,203,200_.jpg",
+    #         'nome'   : "Produto 1",
+    #     },
+    #     {
+    #         'price'  : "R$ 25,00",
+    #         'quantity' : "1",
+    #         'url'    : "https://images-na.ssl-images-amazon.com/images/I/51ELLu0XQxL._SX317_BO1,204,203,200_.jpg",
+    #         'nome'   : "Produto 2",
+    #     },
+    #     {
+    #         'price'  : "R$ 25,00",
+    #         'quantity' : "1",
+    #         'url'    : "https://images-na.ssl-images-amazon.com/images/I/51ELLu0XQxL._SX317_BO1,204,203,200_.jpg",
+    #         'nome'   : "Produto 3",
+    #     },
+    #     {
+    #         'price'  : "R$ 25,00",
+    #         'quantity' : "1",
+    #         'url'    : "https://images-na.ssl-images-amazon.com/images/I/51ELLu0XQxL._SX317_BO1,204,203,200_.jpg",
+    #         'nome'   : "Produto 4",
+    #     }
+    # ]
+
+    # content = {
+    #     'order_id'          : "teste id",
+    #     'type_of_payment'   : "teste tipo de pagamento",
+    #     'date_of_payment'   : "teste data de pagamento",
+    #     'date_of_order'     : "teste data de entrega",
+    #     'payment_status'    : "teste situação de pagamento",
+    #     'delivery_status'   : "teste situação entrega",
+    #     'delivery_code'     : "teste codigo",
+    #     'address'           : "teste endereco",
+    #     'price'             : "100,00",
+    #     'products'          : products,
+
+    # }
+    # response = []
+    # response.append(content)
+    # response.append(content)
+    # response.append(content)
+
+    print(response)
     return django_message("Retornando todos pedidos", 200, response)
 
 # @csrf_exempt

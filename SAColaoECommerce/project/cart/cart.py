@@ -12,9 +12,9 @@ class Cart(object):
             cart = self.session[settings.CART_SESSION_ID] = {}
         self.cart = cart
      
-    def add_product(self, product_id, quantity, price, weight, lenght, width, height, name, description, url):
+    def add_product(self, product_id, quantity, price, weight, lenght, width, height, name, description, url, category):
         if product_id not in self.cart:
-            self.cart[product_id] = {'quantity': quantity, 'price': price, 'peso': weight, 'comprimento': lenght, 'largura': width, 'altura': height, 'nome': name, 'descricao': description, 'url': url}
+            self.cart[product_id] = {'id': product_id, 'quantity': quantity, 'price': price, 'peso': weight, 'comprimento': lenght, 'largura': width, 'altura': height, 'nome': name, 'descricao': description, 'url': url, 'category':category}
         self.save_session()
 
     def update_product(self, product_id, quantity):
@@ -78,7 +78,7 @@ class Cart(object):
 
     # Retornar os itens do carrinho para que a compra prossiga
     def get_cart_itens(self):
-        cart_itens = {}
+        cart_itens = []
         for product_id in self.cart:
-            cart_itens[product_id] = self.cart[product_id]
-        return self.cart
+            cart_itens.append(self.cart[product_id])
+        return cart_itens
