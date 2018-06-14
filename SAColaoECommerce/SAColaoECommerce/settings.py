@@ -142,7 +142,7 @@ STATICFILES_DIRS = (
 
 
 CART_SESSION_ID = 'cart_session_id'
-
+SESSION_ENGINE= 'django.contrib.sessions.backends.cached_db'
 SESSION_COOKIE_DOMAIN = None
 
 # Heroku
