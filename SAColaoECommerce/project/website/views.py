@@ -131,6 +131,7 @@ def login_view(request):
 @csrf_exempt
 def logout_view(request):
     if request.user.is_authenticated:
+        x=(str(request.user.is_authenticated))
         print(str(request.user.is_authenticated))
     
     print(str(request.user.is_authenticated))
@@ -139,7 +140,7 @@ def logout_view(request):
     logout(request)
     print("LOGOUT")
 
-    return django_message("Deslogado", 200, '')
+    return django_message("Deslogado", 200, x)
 
 @csrf_exempt
 def get_all_orders(request):
