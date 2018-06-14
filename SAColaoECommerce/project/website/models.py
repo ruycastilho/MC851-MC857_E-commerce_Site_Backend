@@ -28,6 +28,7 @@ class Order(models.Model):
     order_id = models.CharField(max_length=50)
 
     products = JSONField()
+    address = models.CharField(max_length=50)
 
     SUCCESS = 'A compra foi um sucesso'
     FAILED_DUE_TO_CREDIT = 'A compra falhou devido a restrições de crédito'

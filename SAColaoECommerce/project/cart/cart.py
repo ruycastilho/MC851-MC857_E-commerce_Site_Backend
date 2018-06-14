@@ -12,9 +12,9 @@ class Cart(object):
             cart = self.session[settings.CART_SESSION_ID] = {}
         self.cart = cart
      
-    def add_product(self, product_id, quantity, price, weight, lenght, width, height, name, description):
+    def add_product(self, product_id, quantity, price, weight, lenght, width, height, name, description, url):
         if product_id not in self.cart:
-            self.cart[product_id] = {'quantity': quantity, 'price': price, 'peso': weight, 'comprimento': lenght, 'largura': width, 'altura': height, 'nome': name, 'descricao': description}
+            self.cart[product_id] = {'quantity': quantity, 'price': price, 'peso': weight, 'comprimento': lenght, 'largura': width, 'altura': height, 'nome': name, 'descricao': description, 'url': url}
         self.save_session()
 
     def update_product(self, product_id, quantity):

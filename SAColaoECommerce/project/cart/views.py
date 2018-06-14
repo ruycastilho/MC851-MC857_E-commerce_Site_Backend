@@ -65,7 +65,8 @@ def get_product_specs(product_id):
 	weight = infos['peso']
 	nome = infos['nome']
 	descricao = infos['descricao']
-	return [price, weight, length, width, height, nome, descricao]
+	url = infos['imagem_url']
+	return [price, weight, length, width, height, nome, descricao, url]
 
 # API's
 
@@ -86,8 +87,8 @@ def add_product(requisition):
 	elif(check_quantity(body['product_id'], body['product_quantity']) == -2):
 		return django_message("Quantia deve ser maior do que zero", 404)
 	decrease_quantity(body['product_id'], body['product_quantity'])
-	p, w, l, wid, h, n, d = get_product_specs(body['product_id'])
-	cart.add_product(body['product_id'], body['product_quantity'], p, w, l, wid, h, n, d)
+	p, w, l, wid, h, n, d, url = get_product_specs(body['product_id'])
+	cart.add_product(body['product_id'], body['product_quantity'], p, w, l, wid, h, n, d, url)
 	return django_message("Produto adicionado no carrinho", 200)
 
 # Atualizar quantidade de itens do produto no carrinho

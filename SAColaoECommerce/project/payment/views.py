@@ -88,7 +88,7 @@ def pay_by_credit_card(request):
         module_request = requests.post(base_url + url, json=payload)
         # zerar carrinho sem recolocar no estoque
         # criar order
-        order = Order.objects.create(order_id=randrange(0, 999999), 
+        order = Order.objects.create(       order_id=randrange(0, 999999), 
                                             products=cart_itens, 
                                             order_status=Order.SUCCESS, 
                                             user=client, 
@@ -99,12 +99,13 @@ def pay_by_credit_card(request):
                                             payment_status=Order.ACCEPTED, 
                                             delivery_address="", 
                                             delivery_code=payload['CEP'], 
-                                            delivery_status=Order.PENDING)
+                                            delivery_status=Order.PENDING,
+                                            address=payload['CEP'])
         cart.clear_session()
     else:
         # zerar carrinho, recolocar no estoque
         # criar order para mostrar o porque falhou
-        order = Order.objects.create(order_id=randrange(0, 999999), 
+        order = Order.objects.create(       order_id=randrange(0, 999999), 
                                             products=cart_itens, 
                                             order_status=Order.FAILED_DUE_TO_CREDIT, 
                                             user=client, 
@@ -115,7 +116,9 @@ def pay_by_credit_card(request):
                                             payment_status=Order.UNPAYED, 
                                             delivery_address="", 
                                             delivery_code=payload['CEP'], 
-                                            delivery_status=Order.PENDING)        
+                                            delivery_status=Order.PENDING,
+                                            address=payload['CEP'])
+        
         cart.clear_cart()
 
     response = module_request.json()
