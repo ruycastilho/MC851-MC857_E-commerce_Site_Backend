@@ -130,8 +130,9 @@ def login_view(request):
 # Tag para permitir requisicoes do Postman
 @csrf_exempt
 def logout_view(request):
+    x=(str(request.user.is_authenticated))
     if request.user.is_authenticated:
-        x=(str(request.user.is_authenticated))
+        # x=(str(request.user.is_authenticated))
         print(str(request.user.is_authenticated))
     
     print(str(request.user.is_authenticated))
