@@ -120,6 +120,8 @@ def login_view(request):
         print("LOGIN")
         login(request, user)
 
+        if request.user.is_authenticated:
+            print(str(request.user.is_authenticated))
         return django_message("Logado", 200, '')
     else:
         return django_message("Erro", 404, str(request.user.is_authenticated))
