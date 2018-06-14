@@ -1,0 +1,1 @@
+web: gunicorn SAColaoECommerce.wsgi:application --log-file -

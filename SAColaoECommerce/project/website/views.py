@@ -120,6 +120,8 @@ def login_view(request):
         print("LOGIN")
         login(request, user)
 
+        if request.user.is_authenticated:
+            print(str(request.user.is_authenticated))
         return django_message("Logado", 200, '')
     else:
         return django_message("Erro", 404, str(request.user.is_authenticated))
@@ -128,7 +130,9 @@ def login_view(request):
 # Tag para permitir requisicoes do Postman
 @csrf_exempt
 def logout_view(request):
+    x=(str(request.user.is_authenticated))
     if request.user.is_authenticated:
+        # x=(str(request.user.is_authenticated))
         print(str(request.user.is_authenticated))
     
     print(str(request.user.is_authenticated))
@@ -137,7 +141,7 @@ def logout_view(request):
     logout(request)
     print("LOGOUT")
 
-    return django_message("Deslogado", 200, '')
+    return django_message("Deslogado", 200, x)
 
 @csrf_exempt
 def get_all_orders(request):
