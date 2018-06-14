@@ -54,7 +54,7 @@ def get_track_id(requisition):
 @csrf_exempt
 def get_total_value(requisition):
     cart = Cart(requisition)
-    payload = json.loads(requisition.body)
+    payload = json.loads(requisition.body.decode('utf-8'))
     # content = cart.get_total_price(payload['CEP'], payload['tipoEntrega'])
     content = cart.get_total_price(payload['CEP'], 'PAC')
     return django_message("Mostrando preco total", 200, content)
@@ -78,10 +78,12 @@ def pay_by_credit_card(request):
     cart = Cart(request)
     cart_itens = (cart.get_cart_itens())
     url = '/payments/creditCard'
-    payload = json.loads(request.body)
-    to_pay = json.loads(get_total_value(request).content)
+    payload = json.loads(request.body.decode('utf-8'))
+    print(json.loads(get_total_value(request).content.decode('utf-8')))
+    to_pay = json.loads(get_total_value(request).content.decode('utf-8'))
     payload['value'] = to_pay['content']['preco_total']
 
+    # cart_itens = json.dumps(json.loads(cart_itens).decode('utf-8'))
     user = get_user(request)
     client = user.client
     django_return = None

@@ -107,9 +107,11 @@ def add_product(requisition):
 def update_product(requisition):
 	cart = Cart(requisition)
 	body = format_json(requisition)
-	if(check_quantity(body['product_id'], body['product_quantity']) == -1):
+	quantity = check_quantity(body['product_id'], body['product_quantity'])
+
+	if( quantity == -1):
 		return django_message("Nao existe quantia suficiente no estoque", 404)
-	elif(check_quantity(body['product_id'], body['product_quantity']) == -2):
+	elif(quantity == -2):
 		return django_message("Quantia deve ser maior do que zero", 404)
 	new_quantity = int(cart.get_product_quantity(body['product_id'])) - int(body['product_quantity'])
 	if new_quantity < 0:
