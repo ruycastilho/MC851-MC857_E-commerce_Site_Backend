@@ -76,7 +76,7 @@ def get_total_value(requisition):
 @csrf_exempt
 def pay_by_credit_card(request):
     cart = Cart(request)
-    cart_itens = json.loads(cart.get_cart_itens())
+    cart_itens = (cart.get_cart_itens())
     url = '/payments/creditCard'
     payload = json.loads(request.body)
     to_pay = json.loads(get_total_value(request).content)
@@ -84,11 +84,12 @@ def pay_by_credit_card(request):
 
     user = get_user(request)
     client = user.client
+    django_return = None
     if(client.credit == Client.VALID_CREDIT):
         module_request = requests.post(base_url + url, json=payload)
         # zerar carrinho sem recolocar no estoque
         # criar order
-        order = Order.objects.create(       order_id=randrange(0, 999999), 
+        order = Order.objects.create(       order_id=int(str(randrange(0, 999))+strftime('%Y%m%d%H%M%S', gmtime())), 
                                             products=cart_itens, 
                                             order_status=Order.SUCCESS, 
                                             user=client, 
@@ -101,11 +102,12 @@ def pay_by_credit_card(request):
                                             delivery_code=payload['CEP'], 
                                             delivery_status=Order.PENDING,
                                             address=payload['CEP'])
-        cart.clear_session()
+        django_return = django_message("Ok", "200", content=None)
+        # cart.clear_session()
     else:
         # zerar carrinho, recolocar no estoque
         # criar order para mostrar o porque falhou
-        order = Order.objects.create(       order_id=randrange(0, 999999), 
+        order = Order.objects.create(       order_id=int(str(randrange(0, 999))+strftime('%Y%m%d%H%M%S', gmtime())), 
                                             products=cart_itens, 
                                             order_status=Order.FAILED_DUE_TO_CREDIT, 
                                             user=client, 
@@ -118,10 +120,10 @@ def pay_by_credit_card(request):
                                             delivery_code=payload['CEP'], 
                                             delivery_status=Order.PENDING,
                                             address=payload['CEP'])
-        
-        cart.clear_cart()
+        django_return = django_message("Error", "404", content=None)
+        # cart.clear_cart()
 
-    response = module_request.json()
+    # response = module_request.json()
 
     # if response['result'] == "AUTHORIZED":
     #     return HttpResponse("Hello, world. You're at the polls index.")
@@ -129,7 +131,8 @@ def pay_by_credit_card(request):
     # else :
     #     return JsonResponse(response)
 
-    return JsonResponse(response)
+    # return JsonResponse(response)
+    return django_return
 
 # def installments(request):
 #     url = '/payments/creditCard/installments'
@@ -154,21 +157,22 @@ def pay_by_credit_card(request):
 @csrf_exempt
 def pay_by_slip(request):
     cart = Cart(request)
-    cart_itens = cart.get_cart_itens()    
+    cart_itens = (cart.get_cart_itens()).pop()
     url = '/payments/bankTicket'
     payload = json.loads(request.body)
-    to_pay = json.loads(get_total_value(request).content)    
+    to_pay = json.loads(get_total_value(request).content)
     payload['value'] = to_pay['content']['preco_total']
     payload['cep'] = payload['CEP']
     del payload['CEP']
 
     user = get_user(request)
     client = user.client
-    if(client.credit == Client.VALID_CREDIT):
+    django_return = None    
+    if(client.credit == Client.INVALID_CREDIT):
         module_request = requests.post(base_url + url, json=payload)
         # zerar carrinho
         # criar order
-        order = Order.objects.create(order_id=randrange(0, 999999), 
+        order = Order.objects.create(order_id=int(str(randrange(0, 999))+strftime('%Y%m%d%H%M%S', gmtime())), 
                                             products={str(cart_itens)}, 
                                             order_status=Order.SUCCESS, 
                                             user=client, 
@@ -180,11 +184,12 @@ def pay_by_slip(request):
                                             delivery_address="", 
                                             delivery_code=payload['cep'], 
                                             delivery_status=Order.PENDING)     
-        cart.clear_session()
+        django_return = django_message("Ok", "200", content=None)    
+        # cart.clear_session()
     else:
         # zerar carrinho
         # criar order para mostrar o porque falhou
-        order = Order.objects.create(order_id=randrange(0, 999999), 
+        order = Order.objects.create(order_id=int(str(randrange(0, 999))+strftime('%Y%m%d%H%M%S', gmtime())), 
                                             products={str(cart_itens)}, 
                                             order_status=Order.FAILED_DUE_TO_CREDIT, 
                                             user=client, 
@@ -196,10 +201,11 @@ def pay_by_slip(request):
                                             delivery_address="", 
                                             delivery_code=payload['CEP'], 
                                             delivery_status=Order.PENDING)        
-        cart.clear_cart()
-    response = module_request.json()
+        django_return = django_message("Error", "404", content=None)            
+        # cart.clear_cart()
+    # response = module_request.json()
 
-    return JsonResponse(response)
+    return django_return
 
 # Retorna o numero de parcelas do cartao
 # {
