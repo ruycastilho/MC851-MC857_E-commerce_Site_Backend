@@ -184,11 +184,11 @@ def get_total_value(requisition):
 	return django_message("Mostrando preco total", 200, content)
 
 # Limpa o carrinho e recoloca os itens no estoque
-@csrf_exempt
-def clear_cart(requisition):
-	cart = Cart(requisition)
-	cart_itens = cart.get_cart_itens()
-	for product_id in cart_itens:
-		increase_quantity(product_id, cart_itens[product_id]['quantity'])
-	cart.clear_session()
-	return django_message("Mostrando preco total", 200, 'content')
+# @csrf_exempt
+# def clear_cart(requisition):
+# 	cart = Cart(requisition)
+# 	cart_itens = cart.get_cart_itens()
+# 	for product_id in cart_itens:
+# 		increase_quantity(product_id, cart_itens[product_id]['quantity'])
+# 	cart.clear_session()
+# 	return django_message("Clearing cart", 404, 'content')

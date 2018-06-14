@@ -7,6 +7,9 @@ import json
 class Cart(object):
     def __init__(self, request):
         self.session = request.session
+        self.idempresa = '1033'
+        self.api_key = 'Bearer daeaffa89950427c269d19d54c3f8e2409d5b6e0c5134f20facc797ca62d868f'
+        self.headers = {'Authorization': self.api_key, 'Content-Type': 'application/json'}
         cart = self.session.get(settings.CART_SESSION_ID)
         if not cart:
             cart = self.session[settings.CART_SESSION_ID] = {}
@@ -29,6 +32,14 @@ class Cart(object):
     def clear_session(self):
         del self.session[settings.CART_SESSION_ID]
         self.session.modified = True
+
+    def clear_cart_on_fail(self):
+        for product_id in self.cart:
+            query_id = self.cart[product_id]['id']
+            query_quantity = self.cart[product_id]['quantity']
+            payload = {'idempresa': self.idempresa, 'idproduto': query_id, 'quantidade': query_quantity}
+            response = requests.post('http://produtos.vitainformatica.com/api/movimento_estoque/estornar', json=payload, headers=self.headers)
+        self.clear_session()
 
     def get_product_quantity(self, product_id):
         if product_id in self.cart:

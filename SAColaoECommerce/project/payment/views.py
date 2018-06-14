@@ -105,7 +105,7 @@ def pay_by_credit_card(request):
                                             delivery_status=Order.PENDING,
                                             address=payload['CEP'])
         django_return = django_message("Ok", "200", content=None)
-        # cart.clear_session()
+        cart.clear_session()
     else:
         # zerar carrinho, recolocar no estoque
         # criar order para mostrar o porque falhou
@@ -123,7 +123,7 @@ def pay_by_credit_card(request):
                                             delivery_status=Order.PENDING,
                                             address=payload['CEP'])
         django_return = django_message("Error", "404", content=None)
-        # cart.clear_cart()
+        cart.clear_cart_on_fail()
 
     # response = module_request.json()
 
@@ -170,7 +170,7 @@ def pay_by_slip(request):
     user = get_user(request)
     client = user.client
     django_return = None    
-    if(client.credit == Client.INVALID_CREDIT):
+    if(client.credit == Client.VALID_CREDIT):
         module_request = requests.post(base_url + url, json=payload)
         # zerar carrinho
         # criar order
@@ -187,7 +187,7 @@ def pay_by_slip(request):
                                             delivery_code=payload['cep'], 
                                             delivery_status=Order.PENDING)     
         django_return = django_message("Ok", "200", content=None)    
-        # cart.clear_session()
+        cart.clear_session()
     else:
         # zerar carrinho
         # criar order para mostrar o porque falhou
@@ -204,7 +204,7 @@ def pay_by_slip(request):
                                             delivery_code=payload['CEP'], 
                                             delivery_status=Order.PENDING)        
         django_return = django_message("Error", "404", content=None)            
-        # cart.clear_cart()
+        cart.clear_cart_on_fail()
     # response = module_request.json()
 
     return django_return
