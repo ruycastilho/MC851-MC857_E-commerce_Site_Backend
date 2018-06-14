@@ -140,6 +140,12 @@ STATICFILES_DIRS = (
     os.path.join(BASE_DIR, "SAColaoECommerce/static"),
 )
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'my_cache_table',
+    }
+}
 
 CART_SESSION_ID = 'cart_session_id'
 SESSION_ENGINE= 'django.contrib.sessions.backends.cached_db'
