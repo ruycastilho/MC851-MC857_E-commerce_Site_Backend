@@ -206,7 +206,7 @@ def pay_by_slip(request):
         module_request = requests.post(base_url + url, json=payload)
         response = module_request.json()
         print(response)
-        # zerar carrinho
+        # zerar carrinho 
         # criar order
         order = Order.objects.create(order_id=int(str(randrange(0, 999))+strftime('%Y%m%d%H%M%S', gmtime())), 
                                             track_id=track_id,
