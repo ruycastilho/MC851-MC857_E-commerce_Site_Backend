@@ -104,7 +104,7 @@ def pay_by_credit_card(request):
                                             delivery_code=payload['CEP'], 
                                             delivery_status=Order.PENDING,
                                             address=payload['CEP'])
-        django_return = django_message("Ok", "200", content=None)
+        django_return = django_message("Ok", 200, content=None)
         cart.clear_session()
     else:
         # zerar carrinho, recolocar no estoque
@@ -122,7 +122,7 @@ def pay_by_credit_card(request):
                                             delivery_code=payload['CEP'], 
                                             delivery_status=Order.PENDING,
                                             address=payload['CEP'])
-        django_return = django_message("Error", "404", content=None)
+        django_return = django_message("Error", 404, content=None)
         cart.clear_cart_on_fail()
 
     # response = module_request.json()

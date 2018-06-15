@@ -164,51 +164,6 @@ def get_all_orders(request):
         # print(fields)
         response.append(fields)
 
-    # products =[
-    #     {
-    #         'price'  : "R$ 25,00",
-    #         'quantity' : "1",
-    #         'url'    : "https://images-na.ssl-images-amazon.com/images/I/51ELLu0XQxL._SX317_BO1,204,203,200_.jpg",
-    #         'nome'   : "Produto 1",
-    #     },
-    #     {
-    #         'price'  : "R$ 25,00",
-    #         'quantity' : "1",
-    #         'url'    : "https://images-na.ssl-images-amazon.com/images/I/51ELLu0XQxL._SX317_BO1,204,203,200_.jpg",
-    #         'nome'   : "Produto 2",
-    #     },
-    #     {
-    #         'price'  : "R$ 25,00",
-    #         'quantity' : "1",
-    #         'url'    : "https://images-na.ssl-images-amazon.com/images/I/51ELLu0XQxL._SX317_BO1,204,203,200_.jpg",
-    #         'nome'   : "Produto 3",
-    #     },
-    #     {
-    #         'price'  : "R$ 25,00",
-    #         'quantity' : "1",
-    #         'url'    : "https://images-na.ssl-images-amazon.com/images/I/51ELLu0XQxL._SX317_BO1,204,203,200_.jpg",
-    #         'nome'   : "Produto 4",
-    #     }
-    # ]
-
-    # content = {
-    #     'order_id'          : "teste id",
-    #     'type_of_payment'   : "teste tipo de pagamento",
-    #     'date_of_payment'   : "teste data de pagamento",
-    #     'date_of_order'     : "teste data de entrega",
-    #     'payment_status'    : "teste situação de pagamento",
-    #     'delivery_status'   : "teste situação entrega",
-    #     'delivery_code'     : "teste codigo",
-    #     'address'           : "teste endereco",
-    #     'price'             : "100,00",
-    #     'products'          : products,
-
-    # }
-    # response = []
-    # response.append(content)
-    # response.append(content)
-    # response.append(content)
-
     print(response)
     return django_message("Retornando todos pedidos", 200, response)
 
