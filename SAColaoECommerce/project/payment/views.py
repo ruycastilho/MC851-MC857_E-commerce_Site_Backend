@@ -108,8 +108,8 @@ def pay_by_credit_card(request):
         # zerar carrinho sem recolocar no estoque
         # criar order
         order = Order.objects.create(       order_id=int(str(randrange(0, 999))+strftime('%Y%m%d%H%M%S', gmtime())), 
-                                            # track_id=track_id,
-                                            # slip_code="",                                      
+                                            track_id=track_id,
+                                            slip_id="",                                      
                                             products=cart_itens, 
                                             order_status=Order.SUCCESS, 
                                             user=client, 
@@ -129,8 +129,8 @@ def pay_by_credit_card(request):
         # zerar carrinho, recolocar no estoque
         # criar order para mostrar o porque falhou
         order = Order.objects.create(       order_id=int(str(randrange(0, 999))+strftime('%Y%m%d%H%M%S', gmtime())), 
-                                            # track_id=track_id,
-                                            # slip_code="",
+                                            track_id=track_id,
+                                            slip_id="",
                                             products=cart_itens, 
                                             order_status=Order.FAILED_DUE_TO_CREDIT, 
                                             user=client, 
@@ -183,10 +183,10 @@ def pay_by_slip(request):
     cart = Cart(request)
     cart_itens = (cart.get_cart_itens())
     url = '/payments/bankTicket'
-    payload = json.loads(request.body)
+    payload = json.loads(request.body.decode('utf-8'))
     if(validade_cep(payload['CEP']) != 0):
         return django_message("CEP Invalido", 400, None)    
-    to_pay = json.loads(get_total_value(request).content)
+    to_pay = json.loads(get_total_value(request).content.decode('utf-8'))
     tipoEntrega = payload['tipoEntrega']
     payload['value'] = str(to_pay['content']['preco_total'])
     payload['cep'] = payload['CEP']
@@ -202,41 +202,43 @@ def pay_by_slip(request):
     client = user.client
     django_return = None    
     if(client.credit == Client.VALID_CREDIT):
+        print(payload)
         module_request = requests.post(base_url + url, json=payload)
         response = module_request.json()
+        print(response)
         # zerar carrinho
         # criar order
         order = Order.objects.create(order_id=int(str(randrange(0, 999))+strftime('%Y%m%d%H%M%S', gmtime())), 
-                                            # track_id=track_id,
-                                            # slip_code=response['code'],
-                                            products={str(cart_itens)}, 
+                                            track_id=track_id,
+                                            slip_id=response['code'],
+                                            products=cart_itens, 
                                             order_status=Order.SUCCESS, 
                                             user=client,
                                             date_of_order=strftime('%Y-%m-%d %H:%M:%S', gmtime()),                                              
                                             date_of_delivery=delivery_estimated_time, 
                                             date_of_payment=strftime('%Y-%m-%d %H:%M:%S', gmtime()), 
                                             price=payload['value'], 
-                                            type_of_payment=Order.CREDIT, 
+                                            type_of_payment=Order.SLIP, 
                                             payment_status=Order.ACCEPTED, 
                                             delivery_address="", 
                                             delivery_code=payload['cep'], 
                                             delivery_status=Order.PENDING)     
         django_return = django_message("Ok", "200", content=None)    
-        # cart.clear_session()
+        cart.clear_session()
     else:
         # zerar carrinho
         # criar order para mostrar o porque falhou
         order = Order.objects.create(order_id=int(str(randrange(0, 999))+strftime('%Y%m%d%H%M%S', gmtime())), 
-                                            # track_id=track_id,
-                                            # slip_code="",
-                                            products={str(cart_itens)}, 
+                                            track_id=track_id,
+                                            slip_id="",
+                                            products=cart_itens, 
                                             order_status=Order.FAILED_DUE_TO_CREDIT, 
                                             user=client, 
                                             date_of_order=strftime('%Y-%m-%d %H:%M:%S', gmtime()),                                             
                                             date_of_delivery=delivery_estimated_time, 
                                             date_of_payment=strftime('%Y-%m-%d %H:%M:%S', gmtime()), 
                                             price=payload['value'], 
-                                            type_of_payment=Order.CREDIT, 
+                                            type_of_payment=Order.SLIP, 
                                             payment_status=Order.UNPAYED, 
                                             delivery_address="", 
                                             delivery_code=payload['cep'], 

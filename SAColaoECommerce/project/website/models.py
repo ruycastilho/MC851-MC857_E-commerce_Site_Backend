@@ -26,9 +26,10 @@ class Client(models.Model):
 
 class Order(models.Model):
     order_id = models.CharField(max_length=50)
-    # track_id = models.CharField(max_length=200)
+    track_id = models.CharField(max_length=200)
     products = JSONField()
     address = models.CharField(max_length=50)
+    slip_id = models.CharField(max_length=200)
 
     SUCCESS = 'A compra foi um sucesso'
     FAILED_DUE_TO_CREDIT = 'A compra falhou devido a restrições de crédito'
@@ -84,15 +85,3 @@ class Order(models.Model):
 
     def __str__(self):
         return self.order_id
-
-# class Product(models.Model):
-
-#     name = models.CharField(max_length=50)
-#     brand = models.CharField(max_length=50)
-#     description = models.CharField(max_length=200)
-#     price = models.DecimalField(decimal_places=2, max_digits=2)
-#     amount = models.IntegerField()
-#     category = models.CharField(max_length=50)
-
-#     def __str__(self):
-#         return self.name
