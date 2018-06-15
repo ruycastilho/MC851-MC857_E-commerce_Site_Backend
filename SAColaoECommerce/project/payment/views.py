@@ -35,15 +35,16 @@ def get_track_id(cart_itens, tipoEntrega, cepDestino):
     body = cart_itens[0]
     payload = {
         "idProduto": int(body['id']),
-        "tipoEntrega": tipoEntrega,
-        "cepOrigem": cepOrigem,
+        "tipoEntrega": str(tipoEntrega),
+        "cepOrigem": str(cepOrigem),
         "cepDestino": "13348-863",
-        "peso": float(body['peso']),
+        # "peso": float(body['peso']),
+        "peso": 104,        
         "tipoPacote": "Caixa",
         "altura": int(body['altura']),
         "largura": int(body['largura']),
         "comprimento": int(body['comprimento']),
-        "apiKey": logistica_api_key
+        "apiKey": str(logistica_api_key)
     }
     print(payload)
     response = requests.post('https://hidden-basin-50728.herokuapp.com/cadastrarentrega', json=payload).json()
