@@ -158,8 +158,16 @@ def show_cart(requisition):
 def get_frete_value(requisition):
 	cart = Cart(requisition)
 	body = format_json(requisition)	
-	content = cart.get_frete_price(body['CEP'], body['tipoEntrega'])
-	return django_message("Mostrando frete, valor em reais", 200, content['preco_frete'])
+	# content = cart.get_frete_price(body['CEP'], body['tipoEntrega'])
+	h = {'x-api-key': '4f5bc7c5-ba73-4d4c-8e49-8d466270865e'}
+	response = requests.get("http://node.thiagoelg.com/paises/br/cep/%s" %body['CEP'], headers=h)
+	django_return = None	
+	if response.status_code == requests.codes.ok:
+		content = cart.get_frete_price(body['CEP'], body['tipoEntrega'])
+		django_return = django_message("Mostrando frete, valor em reais", 200, content['preco_frete'])
+	else:
+		django_return = django_message("CEP invalido", 404, None)
+	return django_return
 
 
 # Mostra valor total dos itens no carrinho em reais.
