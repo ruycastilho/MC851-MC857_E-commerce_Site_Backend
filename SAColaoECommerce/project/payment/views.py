@@ -31,9 +31,7 @@ def django_message(message, status_code, content=None):
     )
 
 # Retorno do codigo de rastreio para o produto
-@csrf_exempt
-def get_track_id(requisition):
-    body = format_json(requisition)
+def get_track_id():
     payload = {
         "idProduto": body['idProduto'],
         "tipoEntrega": body['tipoEntrega'],
@@ -48,6 +46,15 @@ def get_track_id(requisition):
     }
     response = requests.post('https://hidden-basin-50728.herokuapp.com/cadastrarentrega', json=payload).json()
     return django_message("Codigo de rastreio", response['status'], response['codigoRastreio'])
+
+# Validade CEP
+def validade_cep(cep):
+    h = {'x-api-key': '4f5bc7c5-ba73-4d4c-8e49-8d466270865e'}
+    response = requests.get("http://node.thiagoelg.com/paises/br/cep/%s" %cep, headers=h)
+    django_return = None        
+    if response.status_code == requests.codes.ok:
+        return 0
+    return -1
 
 # Retorna o valor total do carrinho + frete
 # Hardcoded para sempre ser PAC por enquanto
@@ -79,11 +86,13 @@ def pay_by_credit_card(request):
     cart_itens = (cart.get_cart_itens())
     url = '/payments/creditCard'
     payload = json.loads(request.body.decode('utf-8'))
-    print(json.loads(get_total_value(request).content.decode('utf-8')))
+    # print(json.loads(get_total_value(request).content.decode('utf-8')))
+    if(validade_cep(payload['CEP']) != 0):
+        return django_message("CEP Invalido", 400, None)
     to_pay = json.loads(get_total_value(request).content.decode('utf-8'))
     payload['value'] = to_pay['content']['preco_total']
     delivery_estimated_time = to_pay['content']['tempo_entrega']
-    print(delivery_estimated_time)
+    # print(delivery_estimated_time)
 
     # cart_itens = json.dumps(json.loads(cart_itens).decode('utf-8'))
     user = get_user(request)
@@ -108,7 +117,7 @@ def pay_by_credit_card(request):
                                             delivery_status=Order.PENDING,
                                             address=payload['CEP'])
         django_return = django_message("Ok", "200", content=None)
-        # cart.clear_session()
+        cart.clear_session()
     else:
         # zerar carrinho, recolocar no estoque
         # criar order para mostrar o porque falhou
@@ -166,6 +175,8 @@ def pay_by_slip(request):
     cart_itens = (cart.get_cart_itens()).pop()
     url = '/payments/bankTicket'
     payload = json.loads(request.body)
+    if(validade_cep(payload['CEP']) != 0):
+        return django_message("CEP Invalido", 400, None)    
     to_pay = json.loads(get_total_value(request).content)
     payload['value'] = to_pay['content']['preco_total']
     payload['cep'] = payload['CEP']
