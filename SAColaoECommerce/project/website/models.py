@@ -26,7 +26,7 @@ class Client(models.Model):
 
 class Order(models.Model):
     order_id = models.CharField(max_length=50)
-
+    # track_id = models.CharField(max_length=200)
     products = JSONField()
     address = models.CharField(max_length=50)
 

@@ -31,21 +31,23 @@ def django_message(message, status_code, content=None):
     )
 
 # Retorno do codigo de rastreio para o produto
-def get_track_id():
+def get_track_id(cart_itens, tipoEntrega, cepDestino):
+    body = cart_itens[0]
     payload = {
-        "idProduto": body['idProduto'],
-        "tipoEntrega": body['tipoEntrega'],
+        "idProduto": int(body['id']),
+        "tipoEntrega": tipoEntrega,
         "cepOrigem": cepOrigem,
-        "cepDestino": body['cepDestino'],
-        "peso": body['peso'],
+        "cepDestino": "13348-863",
+        "peso": float(body['peso']),
         "tipoPacote": "Caixa",
-        "altura": body['altura'],
-        "largura": body['largura'],
-        "comprimento": body['comprimento'],
+        "altura": int(body['altura']),
+        "largura": int(body['largura']),
+        "comprimento": int(body['comprimento']),
         "apiKey": logistica_api_key
     }
+    print(payload)
     response = requests.post('https://hidden-basin-50728.herokuapp.com/cadastrarentrega', json=payload).json()
-    return django_message("Codigo de rastreio", response['status'], response['codigoRastreio'])
+    return response['codigoRastreio']
 
 # Validade CEP
 def validade_cep(cep):
@@ -88,11 +90,13 @@ def pay_by_credit_card(request):
     payload = json.loads(request.body.decode('utf-8'))
     # print(json.loads(get_total_value(request).content.decode('utf-8')))
     if(validade_cep(payload['CEP']) != 0):
+        print("invalid cep")
         return django_message("CEP Invalido", 400, None)
     to_pay = json.loads(get_total_value(request).content.decode('utf-8'))
     payload['value'] = to_pay['content']['preco_total']
     delivery_estimated_time = to_pay['content']['tempo_entrega']
-    # print(delivery_estimated_time)
+    track_id = get_track_id(cart_itens, payload['tipoEntrega'], payload['CEP'])
+    print(track_id)
 
     # cart_itens = json.dumps(json.loads(cart_itens).decode('utf-8'))
     user = get_user(request)
@@ -103,6 +107,8 @@ def pay_by_credit_card(request):
         # zerar carrinho sem recolocar no estoque
         # criar order
         order = Order.objects.create(       order_id=int(str(randrange(0, 999))+strftime('%Y%m%d%H%M%S', gmtime())), 
+                                            # track_id=track_id,
+                                            # slip_code="",                                      
                                             products=cart_itens, 
                                             order_status=Order.SUCCESS, 
                                             user=client, 
@@ -122,6 +128,8 @@ def pay_by_credit_card(request):
         # zerar carrinho, recolocar no estoque
         # criar order para mostrar o porque falhou
         order = Order.objects.create(       order_id=int(str(randrange(0, 999))+strftime('%Y%m%d%H%M%S', gmtime())), 
+                                            # track_id=track_id,
+                                            # slip_code="",
                                             products=cart_itens, 
                                             order_status=Order.FAILED_DUE_TO_CREDIT, 
                                             user=client, 
@@ -172,25 +180,34 @@ def pay_by_credit_card(request):
 @csrf_exempt
 def pay_by_slip(request):
     cart = Cart(request)
-    cart_itens = (cart.get_cart_itens()).pop()
+    cart_itens = (cart.get_cart_itens())
     url = '/payments/bankTicket'
     payload = json.loads(request.body)
     if(validade_cep(payload['CEP']) != 0):
         return django_message("CEP Invalido", 400, None)    
     to_pay = json.loads(get_total_value(request).content)
-    payload['value'] = to_pay['content']['preco_total']
+    tipoEntrega = payload['tipoEntrega']
+    payload['value'] = str(to_pay['content']['preco_total'])
     payload['cep'] = payload['CEP']
+    payload['clientName'] = "sindo"
     del payload['CEP']
+    del payload['tipoEntrega']
+
     delivery_estimated_time = to_pay['content']['tempo_entrega']
+    track_id = get_track_id(cart_itens, tipoEntrega, payload['cep'])
+    # print(track_id)
 
     user = get_user(request)
     client = user.client
     django_return = None    
     if(client.credit == Client.VALID_CREDIT):
         module_request = requests.post(base_url + url, json=payload)
+        response = module_request.json()
         # zerar carrinho
         # criar order
         order = Order.objects.create(order_id=int(str(randrange(0, 999))+strftime('%Y%m%d%H%M%S', gmtime())), 
+                                            # track_id=track_id,
+                                            # slip_code=response['code'],
                                             products={str(cart_itens)}, 
                                             order_status=Order.SUCCESS, 
                                             user=client,
@@ -204,11 +221,13 @@ def pay_by_slip(request):
                                             delivery_code=payload['cep'], 
                                             delivery_status=Order.PENDING)     
         django_return = django_message("Ok", "200", content=None)    
-        cart.clear_session()
+        # cart.clear_session()
     else:
         # zerar carrinho
         # criar order para mostrar o porque falhou
         order = Order.objects.create(order_id=int(str(randrange(0, 999))+strftime('%Y%m%d%H%M%S', gmtime())), 
+                                            # track_id=track_id,
+                                            # slip_code="",
                                             products={str(cart_itens)}, 
                                             order_status=Order.FAILED_DUE_TO_CREDIT, 
                                             user=client, 
@@ -219,11 +238,10 @@ def pay_by_slip(request):
                                             type_of_payment=Order.CREDIT, 
                                             payment_status=Order.UNPAYED, 
                                             delivery_address="", 
-                                            delivery_code=payload['CEP'], 
+                                            delivery_code=payload['cep'], 
                                             delivery_status=Order.PENDING)        
         django_return = django_message("Error", "404", content=None)            
         cart.clear_cart_on_fail()
-    # response = module_request.json()
 
     return django_return
 
