@@ -45,6 +45,7 @@ class Order(models.Model):
     )
  
     date_of_order = models.DateTimeField()
+    date_of_delivery = models.CharField(max_length=50)
     date_of_payment = models.DateTimeField()
     price = models.DecimalField(decimal_places=2, max_digits=1000)
  

@@ -82,6 +82,8 @@ def pay_by_credit_card(request):
     print(json.loads(get_total_value(request).content.decode('utf-8')))
     to_pay = json.loads(get_total_value(request).content.decode('utf-8'))
     payload['value'] = to_pay['content']['preco_total']
+    delivery_estimated_time = to_pay['content']['tempo_entrega']
+    print(delivery_estimated_time)
 
     # cart_itens = json.dumps(json.loads(cart_itens).decode('utf-8'))
     user = get_user(request)
@@ -96,6 +98,7 @@ def pay_by_credit_card(request):
                                             order_status=Order.SUCCESS, 
                                             user=client, 
                                             date_of_order=strftime('%Y-%m-%d %H:%M:%S', gmtime()), 
+                                            date_of_delivery=delivery_estimated_time,
                                             date_of_payment=strftime('%Y-%m-%d %H:%M:%S', gmtime()), 
                                             price=payload['value'], 
                                             type_of_payment=Order.CREDIT, 
@@ -105,7 +108,7 @@ def pay_by_credit_card(request):
                                             delivery_status=Order.PENDING,
                                             address=payload['CEP'])
         django_return = django_message("Ok", "200", content=None)
-        cart.clear_session()
+        # cart.clear_session()
     else:
         # zerar carrinho, recolocar no estoque
         # criar order para mostrar o porque falhou
@@ -113,7 +116,8 @@ def pay_by_credit_card(request):
                                             products=cart_itens, 
                                             order_status=Order.FAILED_DUE_TO_CREDIT, 
                                             user=client, 
-                                            date_of_order=strftime('%Y-%m-%d %H:%M:%S', gmtime()), 
+                                            date_of_order=strftime('%Y-%m-%d %H:%M:%S', gmtime()),                                             
+                                            date_of_delivery=delivery_estimated_time, 
                                             date_of_payment=strftime('%Y-%m-%d %H:%M:%S', gmtime()), 
                                             price=payload['value'], 
                                             type_of_payment=Order.CREDIT, 
@@ -166,6 +170,7 @@ def pay_by_slip(request):
     payload['value'] = to_pay['content']['preco_total']
     payload['cep'] = payload['CEP']
     del payload['CEP']
+    delivery_estimated_time = to_pay['content']['tempo_entrega']
 
     user = get_user(request)
     client = user.client
@@ -177,8 +182,9 @@ def pay_by_slip(request):
         order = Order.objects.create(order_id=int(str(randrange(0, 999))+strftime('%Y%m%d%H%M%S', gmtime())), 
                                             products={str(cart_itens)}, 
                                             order_status=Order.SUCCESS, 
-                                            user=client, 
-                                            date_of_order=strftime('%Y-%m-%d %H:%M:%S', gmtime()), 
+                                            user=client,
+                                            date_of_order=strftime('%Y-%m-%d %H:%M:%S', gmtime()),                                              
+                                            date_of_delivery=delivery_estimated_time, 
                                             date_of_payment=strftime('%Y-%m-%d %H:%M:%S', gmtime()), 
                                             price=payload['value'], 
                                             type_of_payment=Order.CREDIT, 
@@ -195,7 +201,8 @@ def pay_by_slip(request):
                                             products={str(cart_itens)}, 
                                             order_status=Order.FAILED_DUE_TO_CREDIT, 
                                             user=client, 
-                                            date_of_order=strftime('%Y-%m-%d %H:%M:%S', gmtime()), 
+                                            date_of_order=strftime('%Y-%m-%d %H:%M:%S', gmtime()),                                             
+                                            date_of_delivery=delivery_estimated_time, 
                                             date_of_payment=strftime('%Y-%m-%d %H:%M:%S', gmtime()), 
                                             price=payload['value'], 
                                             type_of_payment=Order.CREDIT, 

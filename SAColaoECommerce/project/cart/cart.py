@@ -85,7 +85,7 @@ class Cart(object):
         frete = self.get_frete_price(CEP, tipoEntrega)
         products = self.get_cart_price()
         total = float(frete['preco_frete']) + float(products['preco_carrinho'])
-        return {'preco_total': total}
+        return {'preco_total': total, 'tempo_entrega': frete['tempo_entrega']}
 
     # Retornar os itens do carrinho para que a compra prossiga
     def get_cart_itens(self):
