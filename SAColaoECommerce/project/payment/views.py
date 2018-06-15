@@ -223,7 +223,7 @@ def pay_by_slip(request):
                                             delivery_address="", 
                                             delivery_code=payload['cep'], 
                                             delivery_status=Order.PENDING)     
-        django_return = django_message("Ok", "200", content=None)    
+        django_return = django_message("Ok", 200, content=None)    
         cart.clear_session()
     else:
         # zerar carrinho
@@ -243,7 +243,7 @@ def pay_by_slip(request):
                                             delivery_address="", 
                                             delivery_code=payload['cep'], 
                                             delivery_status=Order.PENDING)        
-        django_return = django_message("Error", "404", content=None)            
+        django_return = django_message("Error", 404, content=None)            
         cart.clear_cart_on_fail()
 
     return django_return
